@@ -198,7 +198,6 @@ namespace Immersive.QaFramework.IfAdr046.Editor
             SetReference(contributions[0], "activity", Load<ActivityAsset>(activityPath));
 
             foreach (QaIfAdr046JoinScenario oldScenario in FindComponents<QaIfAdr046JoinScenario>(scene)) UnityEngine.Object.DestroyImmediate(oldScenario);
-            foreach (PlayerSessionJoinCommandTrigger oldTrigger in FindComponents<PlayerSessionJoinCommandTrigger>(scene)) UnityEngine.Object.DestroyImmediate(oldTrigger);
             foreach (PlayerSessionJoinTrigger oldTrigger in FindComponents<PlayerSessionJoinTrigger>(scene)) UnityEngine.Object.DestroyImmediate(oldTrigger);
 
             if (readinessObservers.Length == 0) observers[0].gameObject.AddComponent<ActivityReadinessEvents>();

@@ -226,12 +226,12 @@ namespace Immersive.QaFramework.PlayerSession.Editor
             Set(contribution, "localContentId", "qa.player.session.leave-rejoin.activity.main");
             PlayerSessionObserver observer = root.AddComponent<PlayerSessionObserver>();
             SetEnum(observer, "scope", "Activity");
-            PlayerSessionJoinCommandTrigger join = root.AddComponent<PlayerSessionJoinCommandTrigger>();
+            PlayerSessionJoinTrigger join = root.AddComponent<PlayerSessionJoinTrigger>();
             SetEnum(join, "scope", "Activity");
             Set(join, "controlScheme", ControlScheme);
             QaPlayerSessionLeaveRejoinScenario scenario = root.AddComponent<QaPlayerSessionLeaveRejoinScenario>();
             Set(scenario, "sessionObserver", observer);
-            Set(scenario, "joinCommand", join);
+            Set(scenario, "joinTrigger", join);
             Set(scenario, "expectedSlot", slot);
             Set(scenario, "expectedDefaultActor", actor);
             SaveScene(scene, ActivityScenePath);
@@ -344,20 +344,20 @@ namespace Immersive.QaFramework.PlayerSession.Editor
             {
                 ActivityContentContribution[] contributions = Components<ActivityContentContribution>(scene);
                 PlayerSessionObserver[] observers = Components<PlayerSessionObserver>(scene);
-                PlayerSessionJoinCommandTrigger[] joins = Components<PlayerSessionJoinCommandTrigger>(scene);
+                PlayerSessionJoinTrigger[] joins = Components<PlayerSessionJoinTrigger>(scene);
                 QaPlayerSessionLeaveRejoinScenario[] scenarios = Components<QaPlayerSessionLeaveRejoinScenario>(scene);
                 string issue = string.Empty;
                 if (contributions.Length != 1 || contributions[0].Activity != activity || !contributions[0].HasExplicitLocalContentId ||
                     observers.Length != 1 || joins.Length != 1 || scenarios.Length != 1 ||
                     observers[0].Scope != LocalPlayerProvisioningConsumerScope.Activity ||
                     joins[0].Scope != LocalPlayerProvisioningConsumerScope.Activity ||
-                    !observers[0].TryValidateConfiguration(out issue) || !joins[0].TryValidateConfiguration(out issue))
+                    !observers[0].TryValidateConfiguration(out issue))
                     throw new InvalidOperationException("Persisted Slice 2 Activity contribution, scoped Observer/Join or scenario cardinality is invalid. " + issue);
 
                 SerializedObject scenario = new SerializedObject(scenarios[0]);
                 scenario.Update();
                 if (Require(scenario, "sessionObserver").objectReferenceValue != observers[0] ||
-                    Require(scenario, "joinCommand").objectReferenceValue != joins[0] ||
+                    Require(scenario, "joinTrigger").objectReferenceValue != joins[0] ||
                     Require(scenario, "expectedSlot").objectReferenceValue != slot ||
                     Require(scenario, "expectedDefaultActor").objectReferenceValue != actor ||
                     !scenarios[0].enabled || !scenarios[0].gameObject.activeInHierarchy)

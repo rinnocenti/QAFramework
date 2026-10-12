@@ -10,6 +10,7 @@ using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
 using Immersive.QaFramework.Certification;
 using Immersive.QaFramework.IfAdr042;
+using Immersive.QaFramework.PlayerSession;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -34,8 +35,8 @@ namespace Immersive.QaFramework.IfAdr044
         };
 
         [SerializeField] private GameApplicationAsset gameApplication;
-        [SerializeField] private LocalPlayerProvisioningAuthoring provisioning;
-        [SerializeField] private LocalPlayerProvisioningEndpointRegistration provisioningRegistration;
+        [SerializeField] private PlayerSessionObserver routeSessionObserver;
+        [SerializeField] private PlayerSessionJoinTrigger joinTrigger;
         [SerializeField] private QaIfAdr042SharedGroupEvidence outputEvidence;
         [SerializeField] private PlayerSlotProfile player1;
         [SerializeField] private PlayerSlotProfile player2;
@@ -47,6 +48,7 @@ namespace Immersive.QaFramework.IfAdr044
         private Keyboard _keyboard1;
         private Keyboard _keyboard2;
         private PlayerSessionObserver _observer;
+        private IPlayerSessionScopedAccess _routeAccess;
         private PlayerGameplayAvailabilityBlockToken _firstBlock;
         private PlayerGameplayAvailabilityBlockToken _secondBlock;
         private bool _started;
@@ -82,8 +84,10 @@ namespace Immersive.QaFramework.IfAdr044
                 yield break;
             }
 
-            yield return WaitFor(() => provisioning.RuntimeReady && TryResolveObserver(out _) &&
-                _observer.IsAvailable && provisioning.RuntimeSnapshot != null &&
+            yield return WaitFor(() => routeSessionObserver != null && routeSessionObserver.IsAvailable &&
+                routeSessionObserver.TryGetAccess(out _routeAccess, out _) && _routeAccess != null &&
+                TryResolveObserver(out _) && _observer.IsAvailable &&
+                routeSessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot initialSnapshot) && initialSnapshot != null &&
                 outputEvidence != null && outputEvidence.Outputs.Count == 1 &&
                 outputEvidence.Outputs[0] != null && outputEvidence.Outputs[0].IsReady &&
                 outputEvidence.Outputs[0].Output != null && outputEvidence.Outputs[0].Output.Session != null &&
@@ -91,7 +95,7 @@ namespace Immersive.QaFramework.IfAdr044
                 outputEvidence.Occurrences.Count == 1 && outputEvidence.Occurrences[0] != null &&
                 outputEvidence.Occurrences[0].Composer != null &&
                 outputEvidence.Occurrences[0].Composer.FrameworkOwnedGroupTargetGroup != null,
-                "Player Session provisioning, one Activity-scoped observer and one QA Output did not become available.");
+                "Route-scoped Player Session access, one Activity-scoped observer and one QA Output did not become available.");
             if (!_waitSucceeded)
             {
                 RecordBlocked(_waitIssue);
@@ -99,8 +103,11 @@ namespace Immersive.QaFramework.IfAdr044
                 yield break;
             }
 
-            if (provisioning.RuntimeSnapshot.Slots.Count != 2 ||
-                provisioning.RuntimeSnapshot.Slots.Any(slot => slot.IsJoined))
+            if (!routeSessionObserver.TryValidateConfiguration(out issue) ||
+                routeSessionObserver.Scope != LocalPlayerProvisioningConsumerScope.Route ||
+                joinTrigger == null || joinTrigger.Scope != LocalPlayerProvisioningConsumerScope.Route ||
+                !routeSessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot initial) || initial == null ||
+                initial.Slots.Count != 2 || initial.Slots.Any(slot => slot.IsJoined))
             {
                 RecordBlocked("Certification requires the configured two-Slot Session to begin empty.");
                 PublishTerminal();
@@ -134,7 +141,7 @@ namespace Immersive.QaFramework.IfAdr044
                 yield break;
             }
 
-            PlayerParticipationOperationResult opened = provisioning.OpenJoining(
+            PlayerParticipationOperationResult opened = _routeAccess.OpenJoining(
                 ScenarioId, "Open deterministic QA joining.");
             if (opened == null || !opened.Succeeded)
             {
@@ -241,8 +248,14 @@ namespace Immersive.QaFramework.IfAdr044
                 yield break;
             }
             _firstBlock = leaveBlock.BlockToken;
-            PlayerSlotRuntimeSnapshot joinedSlot = provisioning.RuntimeSnapshot.Slots.First(slot => slot.PlayerSlotId == p1);
-            SessionPlayerLeaveResult leave = provisioning.RequestLeave(new SessionPlayerLeaveRequest(
+            if (!routeSessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot leaveSnapshot) || leaveSnapshot == null)
+            {
+                RecordBlocked("Route-scoped Session snapshot is unavailable before Leave.");
+                yield return CleanupAndPublish();
+                yield break;
+            }
+            PlayerSlotRuntimeSnapshot joinedSlot = leaveSnapshot.Slots.First(slot => slot.PlayerSlotId == p1);
+            SessionPlayerLeaveResult leave = _routeAccess.RequestLeave(new SessionPlayerLeaveRequest(
                 p1, joinedSlot.Revision, ScenarioId, "Leave while a consumer block is held."));
             if (leave == null || !leave.Succeeded)
             {
@@ -275,16 +288,10 @@ namespace Immersive.QaFramework.IfAdr044
         private bool TryValidateAuthoring(out string issue)
         {
             issue = string.Empty;
-            if (gameApplication == null || provisioning == null || provisioningRegistration == null ||
+            if (gameApplication == null || routeSessionObserver == null || joinTrigger == null ||
                 outputEvidence == null || player1 == null || player2 == null || player1 == player2)
             {
-                issue = "Game Application, registered Manager-Provisioned endpoint, and two distinct Slot Profiles are required.";
-                return false;
-            }
-            if (!provisioningRegistration.TryResolveAuthoring(out LocalPlayerProvisioningAuthoring registered, out issue) ||
-                registered != provisioning)
-            {
-                issue = "The registration does not resolve this exact provisioning endpoint. " + issue;
+                issue = "Game Application, Route-scoped Join/Session contracts, and two distinct Slot Profiles are required.";
                 return false;
             }
             if (!gameApplication.PlayerSessionEnabled || gameApplication.DefaultPlayerSessionProfile == null ||
@@ -302,12 +309,6 @@ namespace Immersive.QaFramework.IfAdr044
                 issue = "Game Application Player Session must preserve the exact authored P1/P2 Slot order.";
                 return false;
             }
-            if (!provisioning.HasPlayerInputManager || !provisioning.UsesManualJoin ||
-                provisioning.PlayerInputManager.maxPlayerCount != 2)
-            {
-                issue = "Provisioning must use the authored manual two-Player Manager.";
-                return false;
-            }
             return true;
         }
 
@@ -318,17 +319,21 @@ namespace Immersive.QaFramework.IfAdr044
                 RecordBlocked(phase + ": Slot identity unavailable. " + issue);
                 yield break;
             }
-            LocalPlayerJoinResult joined = provisioning.RequestJoin(
+            LocalPlayerJoinOutcome outcome = joinTrigger.RequestJoin(
                 new LocalPlayerJoinRequest(ScenarioId, phase, keyboard, ControlScheme));
-            if (joined == null || !joined.Succeeded || joined.PlayerInput == null || joined.LocalPlayerHost == null)
+            if (outcome == null || outcome.Code != LocalPlayerJoinOutcomeCode.Joined ||
+                outcome.AdmissionState != LocalPlayerJoinAdmissionState.Admitted)
             {
-                RecordFail(phase + ": public Join failed. " + joined?.ToDiagnosticString());
+                RecordFail(phase + ": scoped public Join did not return Joined/Admitted. code='" + outcome?.Code + "' admission='" + outcome?.AdmissionState + "'.");
                 yield break;
             }
-            if (joined.Slot.PlayerSlotId != slotId || !joined.Slot.IsJoined ||
-                joined.LocalPlayerHost.JoinedPlayerSlotId != slotId)
+            if (!QaPlayerSessionJoinEvidenceReader.TryCapture(routeSessionObserver, slotId, keyboard,
+                    out QaPlayerSessionJoinEvidence joined, out string evidenceIssue) ||
+                !joined.Slot.IsJoined || joined.Slot.PlayerSlotId != slotId ||
+                !joined.Host.IsJoined || joined.Host.JoinedPlayerSlotId != slotId ||
+                !ReferenceEquals(joined.Host.PlayerInput, joined.PlayerInput))
             {
-                RecordFail(phase + ": public Join returned a different Slot occurrence.");
+                RecordFail(phase + ": public Session/Host evidence did not correlate the expected Slot and requested device. " + evidenceIssue);
                 yield break;
             }
             _inputs[slotId] = joined.PlayerInput;
@@ -478,8 +483,9 @@ namespace Immersive.QaFramework.IfAdr044
             return true;
         }
 
-        private bool IsJoined(PlayerSlotId slot) => provisioning.RuntimeSnapshot != null &&
-            provisioning.RuntimeSnapshot.Slots.Any(value => value.PlayerSlotId == slot && value.IsJoined);
+        private bool IsJoined(PlayerSlotId slot) => routeSessionObserver != null &&
+            routeSessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot) && snapshot != null &&
+            snapshot.Slots.Any(value => value.PlayerSlotId == slot && value.IsJoined);
 
         private bool IsBlocked(PlayerSlotId slot) => _readers.TryGetValue(slot, out PlayerGameplayInputReader reader) &&
             reader != null && reader.HasCurrentGameplayBinding && !reader.RuntimeGameplayAvailable &&
@@ -576,21 +582,26 @@ namespace Immersive.QaFramework.IfAdr044
                 _secondBlock = default;
             }
 
-            if (provisioning != null && provisioning.RuntimeSnapshot != null)
+            if (routeSessionObserver != null && routeSessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot) && snapshot != null &&
+                routeSessionObserver.TryGetAccess(out _routeAccess, out _) && _routeAccess != null)
             {
-                foreach (PlayerSlotRuntimeSnapshot slot in provisioning.RuntimeSnapshot.Slots.Where(item => item.IsJoined).ToArray())
+                foreach (PlayerSlotRuntimeSnapshot slot in snapshot.Slots.Where(item => item.IsJoined).ToArray())
                 {
-                    SessionPlayerLeaveResult leave = provisioning.RequestLeave(new SessionPlayerLeaveRequest(
+                    SessionPlayerLeaveResult leave = _routeAccess.RequestLeave(new SessionPlayerLeaveRequest(
                         slot.PlayerSlotId, slot.Revision, ScenarioId, "Terminal QA cleanup public Leave."));
                     if (leave == null || !leave.Succeeded)
                         _cleanupIssue = Append(_cleanupIssue, "Public Leave cleanup failed for " + slot.PlayerSlotId.StableText + ".");
                 }
             }
-            for (int frame = 0; frame < frameBudget && provisioning != null &&
-                provisioning.RuntimeSnapshot != null && provisioning.RuntimeSnapshot.Slots.Any(slot => slot.IsJoined); frame++)
+            else
+            {
+                _cleanupIssue = Append(_cleanupIssue, "Route-scoped Player Session access was unavailable during public Leave cleanup.");
+            }
+            for (int frame = 0; frame < frameBudget && routeSessionObserver != null &&
+                routeSessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot current) && current != null && current.Slots.Any(slot => slot.IsJoined); frame++)
                 yield return null;
-            if (provisioning != null && provisioning.RuntimeSnapshot != null &&
-                provisioning.RuntimeSnapshot.Slots.Any(slot => slot.IsJoined))
+            if (routeSessionObserver != null && routeSessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot remaining) && remaining != null &&
+                remaining.Slots.Any(slot => slot.IsJoined))
                 _cleanupIssue = Append(_cleanupIssue, "Joined Players remained after public Leave cleanup.");
             if (outputEvidence == null || outputEvidence.Outputs.Count != 1 || outputEvidence.Outputs[0] == null ||
                 outputEvidence.Outputs[0].Output == null || outputEvidence.Outputs[0].Output.Session == null ||

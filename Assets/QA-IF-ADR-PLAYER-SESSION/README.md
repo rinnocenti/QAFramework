@@ -2,7 +2,7 @@
 
 For new certification runs, first complete the [Player Join provenance procedure](../../Documentation~/Certification/PlayerJoin/README.md) and copy `provenance-manifest.template.json` into a unique execution evidence directory. The historical results below remain reported with partial provenance; this procedure does not retroactively bind them to a checkout.
 
-This focused QA-001 scenario certifies one Manager-Provisioned P1 Session lifecycle against the Framework package resolved by QAFramework. It uses the public Activity-scoped Join command and Session Observer. It does not certify gameplay input, camera behavior, Player movement, or gameplay admission.
+This focused QA-001 scenario certifies one Manager-Provisioned P1 Session lifecycle against the Framework package resolved by QAFramework. It uses the public Activity-scoped `PlayerSessionJoinTrigger` and Session Observer. It does not certify gameplay input, camera behavior, Player movement, or gameplay admission.
 
 ## Configure and validate authoring
 
@@ -18,11 +18,11 @@ This focused QA-001 scenario certifies one Manager-Provisioned P1 Session lifecy
 2. Open `Assets/QA-IF-ADR-PLAYER-SESSION/Scenes/QA_PlayerSessionJoin_Persistent.unity` and enter a fresh Play Mode session.
 3. Wait for `[QA-PLAYER-SESSION-JOIN]`. Send the complete terminal line and preceding Framework diagnostics for review.
 
-The Activity's primary content scene hosts the scoped Observer, Join command and scenario. The Persistent Content scene hosts the explicit PlayerInputManager and registered provisioning endpoint. The Route scene contains the Route contribution. A minimal fixed Camera Output is present only because the resolved bootstrap validates Camera Session and requires an explicit valid output prefab; it has no Player assignment and is not part of the Player assertion.
+The Activity's primary content scene hosts the scoped Observer, Join trigger and scenario. The Persistent Content scene hosts the explicit PlayerInputManager and registered provisioning endpoint. The Route scene contains the Route contribution. A minimal fixed Camera Output is present only because the resolved bootstrap validates Camera Session and requires an explicit valid output prefab; it has no Player assignment and is not part of the Player assertion.
 
 ## Scenario and terminal
 
-Expected sequence: valid empty/closed Session baseline → null-device public Join rejected as `RejectedInvalidRequest` with unchanged Session revision → public OpenJoining → explicit synthetic Keyboard Join → P1 Slot and technical Host/PlayerInput correlated → `ResolveConfiguredDefault` selects the authored default Actor → Actor logical preparation and physical materialization observed → gameplay admission remains false at `LogicalActorsPrepared` → public Leave and CloseJoining → synthetic Keyboard/Host released and baseline restored.
+Expected sequence: valid empty/closed Session baseline → null-device public Join rejected as `RejectedInvalidRequest` with unchanged Session revision → public OpenJoining → explicit synthetic Keyboard Join returns `Joined/Admitted` → the Session Observer's Slot, exact device ownership and Unity `PlayerInput.all` entry identify the technical Host/PlayerInput → `ResolveConfiguredDefault` selects the authored default Actor → Actor logical preparation and physical materialization observed → gameplay admission remains false at `LogicalActorsPrepared` → public Leave and CloseJoining → synthetic Keyboard/Host released and baseline restored. Physical evidence is correlated using the authored Slot identity, observed `UnityPlayerIndex` and exact paired device; it is not read from the narrow Join outcome.
 
 Expected terminal shape:
 
@@ -45,7 +45,7 @@ Slice 2 uses a separate GameApplication, Route, Activity and Activity Content Pr
 1. Run **Immersive Framework → QA → Player → Session Join → Configure Session Join Slice** twice. Both runs should preserve a single set of Slice 1 assets/scenes and report a valid baseline.
 2. Run **Immersive Framework → QA → Player → Lifecycle → Configure Leave-Rejoin Slice** twice. It creates/updates only the Slice 2 GameApplication, Route, Activity, Activity Content Profile and two scenes, while adding those scenes to the existing Editor Build Settings list.
 3. Select `Assets/QA-IF-ADR-PLAYER-SESSION/Settings/GameApplication_QaPlayerLeaveRejoin.asset` in `ImmersiveFrameworkSettings`.
-4. Inspect and validate the GameApplication, Route, Activity, Activity Content Profile, shared Session/Slot/Actor/Host and Persistent Content. Confirm the Activity-scoped Observer, Join command and scenario appear exactly once in `QA_PlayerLeaveRejoin_Activity.unity`.
+4. Inspect and validate the GameApplication, Route, Activity, Activity Content Profile, shared Session/Slot/Actor/Host and Persistent Content. Confirm the Activity-scoped Observer, Join trigger and scenario appear exactly once in `QA_PlayerLeaveRejoin_Activity.unity`.
 5. Open `Assets/QA-IF-ADR-PLAYER-SESSION/Scenes/QA_PlayerSessionJoin_Persistent.unity` and confirm the Manager-Provisioned endpoint/PlayerInputManager and shared Host configuration. The new Route and Activity scenes are `QA_PlayerLeaveRejoin_Route.unity` and `QA_PlayerLeaveRejoin_Activity.unity`.
 
 ### Run manually

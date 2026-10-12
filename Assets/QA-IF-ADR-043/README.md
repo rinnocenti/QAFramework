@@ -12,7 +12,7 @@ Run **Immersive Framework > QA > IF-ADR-043 > Configure Physical Participation C
 
 The ManagerProvisioned composition follows the `planet-devourer` samples: one persistent `PlayerInputManager`, manual Join, C# join notifications, an exact two-Player capacity, one shared Local Player Host prefab, `PlayerInput`, and explicit Local Player Provisioning registration. The setup materializes the same Host prefab on the manager and disables Unity split-screen so the test observes Camera Output participation without also testing viewport layout. `CharacterSelectionMultiplayerSplitScreen` supplies the two-Slot/Output mapping pattern; this QA does not test character selection or viewport layout.
 
-Select `Assets/QA-IF-ADR-043/Settings/GameApplication_QaIfAdr043.asset` in `ImmersiveFrameworkSettings` without changing the project setting through the setup menu. Then open `Assets/QA-IF-ADR-043/Scenes/QA_IF_ADR_043_Persistent.unity` and enter a fresh Play Mode session.
+The Manager, provisioning endpoint and registration remain in Persistent Content. The certification controller, Route-scoped `PlayerSessionObserver` and Route-scoped `PlayerSessionJoinTrigger` are authored in the existing Route primary scene. Select `Assets/QA-IF-ADR-043/Settings/GameApplication_QaIfAdr043.asset` in `ImmersiveFrameworkSettings` without changing the project setting through the setup menu. Then open `Assets/QA-IF-ADR-043/Scenes/QA_IF_ADR_043_Route.unity` and enter a fresh Play Mode session.
 
 ## Ordered cases
 

@@ -28,6 +28,8 @@ Treat compiler diagnostics as contract evidence. For each reported identifier, t
 
 ## Ownership and verdicts
 
+Apply the shared evidence and acceptance policy at [design skill reference](../qa-certification-design/references/evidence-policy.md). Preserve each source's result, scope, and provenance in implementation evidence; a gate-level composite/conditional disposition must not rewrite Scenario terminal semantics. Add QA infrastructure only with the policy's objective risk and minimum-intervention justification, and retain any stricter explicit gate.
+
 Implement one complete slice inside QAFramework. The state creator owns its release. Preserve the first causal divergence and keep execution, unwind, and cleanup outcomes separate. Use `PASS`, `FAIL`, and `BLOCKED` with the ADR-001 semantics; a setup/postflight result is not a runtime certification verdict.
 
 Do not change Framework contracts, use reflection/internal hosts/private state/fallback, or create generic Runner, Scenario, Environment, registry, Suite, menu, or shared setup infrastructure from one slice. Report framework defects separately; repair them only with separate authorization.

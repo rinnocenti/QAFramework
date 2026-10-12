@@ -17,6 +17,8 @@ For compile-surface review, verify every called member against the resolved Fram
 
 ## Review sequence
 
+Apply the shared evidence and acceptance policy at [design skill reference](../qa-certification-design/references/evidence-policy.md). Review individual results, property coverage, and gate disposition separately; assess any composite/conditional acceptance against applicable governance and preserve all limitations and provenance. Do not demand more infrastructure without the policy's risk, uncovered property, missing evidence, and least intervention analysis.
+
 Before first Play Mode, reconstruct:
 
 `Sources → Preflight → Construction → Persisted Assets → Bootstrap/Scenario → Evidence → Cleanup → Restoration → Verdict`

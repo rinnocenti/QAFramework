@@ -152,7 +152,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Immersive.QaFramework.PlayerSession.QaPlayerSessionLeaveRejoinScenario
   sessionObserver: {fileID: 1379291532}
-  joinCommand: {fileID: 1379291531}
+  joinTrigger: {fileID: 1379291531}
   expectedSlot: {fileID: 11400000, guid: 52a71563f23601c42af4f63a9e59615a, type: 2}
   expectedDefaultActor: {fileID: 11400000, guid: c1e412561c886c74d9c59b8dc08753a4, type: 2}
   frameBudget: 600
@@ -165,9 +165,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1379291529}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a1ab0b68f54b074babd906b60740182, type: 3}
+  m_Script: {fileID: 11500000, guid: 5b9a5ffbb42643c3ab9ba6af6c43198d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionJoinCommandTrigger
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionJoinTrigger
   scope: 20
   reason: 
   controlScheme: QA.Keyboard

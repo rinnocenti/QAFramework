@@ -9,6 +9,7 @@ using Immersive.Framework.CameraAuthoring;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
 using Immersive.QaFramework.Certification;
+using Immersive.QaFramework.PlayerSession;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -33,9 +34,10 @@ namespace Immersive.QaFramework.IfAdr042
         };
 
         [SerializeField] private GameApplicationAsset gameApplication;
-        [SerializeField] private LocalPlayerProvisioningAuthoring provisioning;
-        [SerializeField] private LocalPlayerProvisioningEndpointRegistration provisioningRegistration;
+        [SerializeField] private PlayerSessionObserver routeSessionObserver;
+        [SerializeField] private PlayerSessionJoinTrigger joinTrigger;
         private PlayerSessionObserver playerSessionObserver;
+        private IPlayerSessionScopedAccess _sessionAccess;
         [SerializeField] private QaIfAdr042SharedGroupEvidence evidence;
         [SerializeField] private PlayerSlotProfile player1;
         [SerializeField] private PlayerSlotProfile player2;
@@ -94,13 +96,13 @@ namespace Immersive.QaFramework.IfAdr042
                 yield break;
             }
 
-            yield return WaitUntil(() => provisioning.RuntimeReady &&
-                TryResolveActivityObserver(out _) && playerSessionObserver.IsAvailable && evidence.Outputs.Count == 1 &&
+            yield return WaitUntil(() => TryResolveActivityObserver(out _) &&
+                playerSessionObserver.IsAvailable && TryResolveScopedAccess(out _) && evidence.Outputs.Count == 1 &&
                 evidence.Occurrences.Count == 1 && evidence.Outputs[0] != null &&
                 evidence.Outputs[0].IsReady && evidence.Occurrences[0] != null &&
                 evidence.Occurrences[0].Composer != null &&
                 evidence.Occurrences[0].Composer.FrameworkOwnedGroupTargetGroup != null,
-                "Framework did not expose the Activity Player Session access, one initialized Output, and one materialized SharedGroup occurrence.");
+                "Framework did not expose the Route Player Session access, one initialized Output, and one materialized SharedGroup occurrence.");
             if (!_waitSucceeded)
             {
                 RecordBlocked(_waitIssue);
@@ -108,10 +110,13 @@ namespace Immersive.QaFramework.IfAdr042
                 yield break;
             }
 
-            if (!playerSessionObserver.TryValidateConfiguration(out issue) ||
-                playerSessionObserver.Scope != LocalPlayerProvisioningConsumerScope.Activity)
+            if (!routeSessionObserver.TryValidateConfiguration(out issue) ||
+                routeSessionObserver.Scope != LocalPlayerProvisioningConsumerScope.Route ||
+                !playerSessionObserver.TryValidateConfiguration(out issue) ||
+                playerSessionObserver.Scope != LocalPlayerProvisioningConsumerScope.Activity ||
+                joinTrigger == null || joinTrigger.Scope != LocalPlayerProvisioningConsumerScope.Route)
             {
-                RecordBlocked("Activity-scoped Player Session Observer is invalid. " + issue);
+                RecordBlocked("Route-scoped Player Session Observer or Join trigger is invalid. " + issue);
                 PublishTerminal(false);
                 yield break;
             }
@@ -138,7 +143,7 @@ namespace Immersive.QaFramework.IfAdr042
             }
             _completedCases++;
 
-            PlayerParticipationOperationResult opening = provisioning.OpenJoining(
+            PlayerParticipationOperationResult opening = _sessionAccess.OpenJoining(
                 ScenarioId, "Open deterministic QA joining before public ManagerProvisioned joins.");
             if (opening == null || !opening.Succeeded)
             {
@@ -182,60 +187,11 @@ namespace Immersive.QaFramework.IfAdr042
         private bool TryValidateAuthoredComposition(out string issue)
         {
             issue = string.Empty;
-            if (gameApplication == null || provisioning == null ||
-                provisioningRegistration == null ||
+            if (gameApplication == null || routeSessionObserver == null || joinTrigger == null ||
                 evidence == null || player1 == null || player2 == null ||
                 player1Replacement == null || assignment == null)
             {
-                issue = "Game Application, explicit provisioning registration, evidence, two Slots, replacement Actor Profile, and Assignment are required.";
-                return false;
-            }
-
-            if (!provisioningRegistration.TryResolveAuthoring(
-                    out LocalPlayerProvisioningAuthoring registered, out issue) ||
-                registered != provisioning)
-            {
-                issue = "Provisioning registration does not resolve the scenario's exact ManagerProvisioned endpoint. " + issue;
-                return false;
-            }
-
-            if (!provisioning.HasPlayerInputManager || !provisioning.UsesManualJoin ||
-                !provisioning.UsesCSharpJoinNotifications || !provisioning.IsManagerPrefabMaterialized ||
-                provisioning.PlayerInputManager.maxPlayerCount != 2 ||
-                provisioning.PlayerInputManager.splitScreen ||
-                provisioning.PlayerInputManager.gameObject != provisioning.gameObject)
-            {
-                issue = "The explicit provisioning endpoint must own one manual, non-split-screen two-Player Manager using its authored Host prefab.";
-                return false;
-            }
-
-            PlayerInput hostInput = provisioning.LocalPlayerHostPrefab != null
-                ? provisioning.LocalPlayerHostPrefab.GetComponent<PlayerInput>()
-                : null;
-            LocalPlayerHostAuthoring host = provisioning.LocalPlayerHostPrefab != null
-                ? provisioning.LocalPlayerHostPrefab.GetComponent<LocalPlayerHostAuthoring>()
-                : null;
-            if (hostInput == null || host == null || host.PlayerInput != hostInput ||
-                host.ActorMount == null || host.PlayerActorRuntimeHostPrefab == null ||
-                !host.PlayerActorRuntimeHostPrefab.TryValidateConfiguration(out issue))
-            {
-                issue = "Manager Host must expose its root PlayerInput, Actor Mount and valid PlayerActorRuntimeHost prefab. " + issue;
-                return false;
-            }
-
-            if (hostInput.actions == null || hostInput.defaultActionMap != "Player" ||
-                hostInput.defaultControlScheme != QaControlScheme ||
-                hostInput.actions.FindActionMap("Player") == null ||
-                hostInput.actions.FindAction("Move") == null)
-            {
-                issue = "Host PlayerInput must expose the Player map and QA.Keyboard action configuration.";
-                return false;
-            }
-            InputControlScheme? scheme = hostInput.actions.FindControlScheme(QaControlScheme);
-            if (!scheme.HasValue || !scheme.Value.deviceRequirements.Any(
-                    requirement => requirement.controlPath == "<Keyboard>" && !requirement.isOptional))
-            {
-                issue = "PlayerInput Actions must define QA.Keyboard with a required Keyboard device.";
+                issue = "Game Application, Route-scoped Observer and Join trigger, evidence, two Slots, replacement Actor Profile, and Assignment are required.";
                 return false;
             }
 
@@ -301,6 +257,23 @@ namespace Immersive.QaFramework.IfAdr042
             return true;
         }
 
+        private bool TryResolveScopedAccess(out string issue)
+        {
+            issue = string.Empty;
+            if (routeSessionObserver == null || joinTrigger == null ||
+                routeSessionObserver.Scope != LocalPlayerProvisioningConsumerScope.Route ||
+                joinTrigger.Scope != LocalPlayerProvisioningConsumerScope.Route)
+            {
+                issue = "The Route scene must own one explicit Route-scoped Observer and Join trigger.";
+                return false;
+            }
+            if (!routeSessionObserver.TryGetAccess(out _sessionAccess, out issue) || _sessionAccess == null)
+            {
+                return false;
+            }
+            return true;
+        }
+
         private bool TryResolveActivityObserver(out string issue)
         {
             issue = string.Empty;
@@ -310,11 +283,11 @@ namespace Immersive.QaFramework.IfAdr042
             if (activity == null || activity.ActivityContentProfile == null ||
                 !activity.ActivityContentProfile.HasScenes)
             {
-                issue = "The active startup Activity has no declared content scene for its scoped observer.";
+                issue = "The startup Activity has no declared content scene for its Actor observer.";
                 return false;
             }
 
-            string[] activityScenePaths = activity.ActivityContentProfile.Scenes
+            string[] paths = activity.ActivityContentProfile.Scenes
                 .Select(entry => entry.ScenePath)
                 .Where(path => !string.IsNullOrWhiteSpace(path))
                 .ToArray();
@@ -322,12 +295,12 @@ namespace Immersive.QaFramework.IfAdr042
                     FindObjectsInactive.Exclude, FindObjectsSortMode.None)
                 .Where(observer => observer != null && observer.isActiveAndEnabled &&
                     observer.Scope == LocalPlayerProvisioningConsumerScope.Activity &&
-                    activityScenePaths.Contains(observer.gameObject.scene.path) &&
+                    paths.Contains(observer.gameObject.scene.path) &&
                     observer.gameObject.scene.IsValid() && observer.gameObject.scene.isLoaded)
                 .ToArray();
             if (candidates.Length != 1)
             {
-                issue = "Expected one enabled Activity-scoped PlayerSessionObserver in the current Activity content scenes; found '" +
+                issue = "Expected one enabled Activity-scoped PlayerSessionObserver for Actor evidence; found '" +
                     candidates.Length + "'.";
                 playerSessionObserver = null;
                 return false;
@@ -340,15 +313,14 @@ namespace Immersive.QaFramework.IfAdr042
         private bool CaptureBaseline(out string issue)
         {
             issue = string.Empty;
-            if (provisioning.RuntimeSnapshot == null ||
-                provisioning.RuntimeSnapshot.Slots.Count != 2 ||
-                provisioning.RuntimeSnapshot.Slots.Any(slot => slot.IsJoined))
+            if (!routeSessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot) || snapshot == null ||
+                snapshot.Slots.Count != 2 || snapshot.Slots.Any(slot => slot.IsJoined))
             {
                 issue = "Player Session is not at the expected zero-Player baseline.";
                 return false;
             }
 
-            if (!provisioning.RuntimeSnapshot.JoiningOpen)
+            if (!snapshot.JoiningOpen)
             {
                 _joiningWasOpened = false;
             }
@@ -424,27 +396,33 @@ namespace Immersive.QaFramework.IfAdr042
                 yield break;
             }
 
-            var request = new LocalPlayerJoinRequest(ScenarioId, stage, device, QaControlScheme);
-            LocalPlayerJoinResult result = provisioning.RequestJoin(request);
-            if (result == null || !result.Succeeded || result.PlayerInput == null ||
-                result.LocalPlayerHost == null)
+            if (!profile.TryGetPlayerSlotId(out PlayerSlotId slotId, out string slotIssue))
             {
-                RecordFail($"{stage}: public Join did not return a current PlayerInput and Local Player Host. result='{result?.ToDiagnosticString()}' provisioning='{provisioning.RuntimeDiagnostic}'.");
+                RecordFail($"{stage}: configured Slot identity is unavailable. {slotIssue}");
+                yield break;
+            }
+            LocalPlayerJoinOutcome outcome = joinTrigger.RequestJoin(
+                new LocalPlayerJoinRequest(ScenarioId, stage, device, QaControlScheme));
+            if (outcome == null || outcome.Code != LocalPlayerJoinOutcomeCode.Joined ||
+                outcome.AdmissionState != LocalPlayerJoinAdmissionState.Admitted)
+            {
+                RecordFail($"{stage}: scoped public Join outcome was not Joined/Admitted. code='{outcome?.Code}' admission='{outcome?.AdmissionState}'.");
                 yield break;
             }
 
-            if (!profile.TryGetPlayerSlotId(out PlayerSlotId slotId, out string slotIssue) ||
-                !result.Slot.IsJoined || result.Slot.PlayerSlotId != slotId ||
-                !result.LocalPlayerHost.IsJoined || !result.LocalPlayerHost.HasJoinedSlot ||
-                result.LocalPlayerHost.JoinedPlayerSlotId != slotId ||
-                !ReferenceEquals(result.LocalPlayerHost.PlayerInput, result.PlayerInput))
+            if (!QaPlayerSessionJoinEvidenceReader.TryCapture(routeSessionObserver, slotId, device,
+                    out QaPlayerSessionJoinEvidence joined, out string evidenceIssue) ||
+                !joined.Slot.IsJoined || joined.Slot.PlayerSlotId != slotId ||
+                !joined.Host.IsJoined || !joined.Host.HasJoinedSlot ||
+                joined.Host.JoinedPlayerSlotId != slotId ||
+                !ReferenceEquals(joined.Host.PlayerInput, joined.PlayerInput))
             {
-                RecordFail($"{stage}: public Join did not return coherent physical Host evidence for expected Slot='{(profile != null ? profile.PlayerSlotIdText : "<invalid>")}'. returnedSlot='{result.Slot.PlayerSlotId.StableText}' hostJoined='{result.LocalPlayerHost.IsJoined}' hostSlot='{result.LocalPlayerHost.JoinedPlayerSlotId.StableText}' playerInputMatchesHost='{ReferenceEquals(result.LocalPlayerHost.PlayerInput, result.PlayerInput)}'. {slotIssue}");
+                RecordFail($"{stage}: public Session/Host evidence did not correlate the expected Slot and exact requested device. {evidenceIssue}");
                 yield break;
             }
 
-            _inputs[slotId] = result.PlayerInput;
-            _hosts[slotId] = result.LocalPlayerHost;
+            _inputs[slotId] = joined.PlayerInput;
+            _hosts[slotId] = joined.Host;
             yield return WaitForStage(stage, expectedJoined);
             if (!_waitSucceeded) RecordFail(_waitIssue);
             else _completedCases++;
@@ -465,7 +443,7 @@ namespace Immersive.QaFramework.IfAdr042
                 yield break;
             }
 
-            SessionPlayerLeaveResult result = provisioning.RequestLeave(
+            SessionPlayerLeaveResult result = _sessionAccess.RequestLeave(
                 new SessionPlayerLeaveRequest(slotId, slot.Revision, ScenarioId, stage));
             if (result == null || !result.Succeeded)
             {
@@ -715,7 +693,11 @@ namespace Immersive.QaFramework.IfAdr042
                 return false;
             }
 
-            PlayerParticipationSnapshot participation = provisioning.RuntimeSnapshot;
+            if (!routeSessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot participation) || participation == null)
+            {
+                issue = $"{stage}: Route-scoped Session snapshot is unavailable.";
+                return false;
+            }
             PlayerSlotId[] observed = participation.Slots.Where(slot => slot.IsJoined)
                 .Select(slot => slot.PlayerSlotId).ToArray();
             if (participation.Slots.Count != 2 || observed.Length != expectedJoined.Count ||
@@ -901,7 +883,11 @@ namespace Immersive.QaFramework.IfAdr042
 
         private bool TryGetCurrentSlot(PlayerSlotId slotId, out PlayerSlotRuntimeSnapshot snapshot)
         {
-            PlayerParticipationSnapshot session = provisioning.RuntimeSnapshot;
+            if (!routeSessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot session) || session == null)
+            {
+                snapshot = default;
+                return false;
+            }
             foreach (PlayerSlotRuntimeSnapshot slot in session.Slots)
             {
                 if (slot.PlayerSlotId != slotId) continue;
@@ -911,6 +897,12 @@ namespace Immersive.QaFramework.IfAdr042
             snapshot = default;
             return false;
         }
+
+        private PlayerParticipationSnapshot CurrentSnapshot =>
+            routeSessionObserver != null &&
+            routeSessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot)
+                ? snapshot
+                : null;
 
         private static bool TryGetObservedSlot(PlayerSessionScopedObservationSnapshot observation,
             PlayerSlotId slotId, out PlayerSessionScopedSlotObservation slot)
@@ -927,9 +919,10 @@ namespace Immersive.QaFramework.IfAdr042
 
         private IEnumerator CleanupAndPublish()
         {
-            if (provisioning == null || !provisioning.RuntimeReady)
+            if (routeSessionObserver == null || !routeSessionObserver.IsAvailable ||
+                !routeSessionObserver.TryGetAccess(out _sessionAccess, out string accessIssue))
             {
-                SetCleanupIssue("Provisioning endpoint is unavailable; public Leaves cannot be confirmed.");
+                SetCleanupIssue("Route-scoped Player Session access is unavailable; public Leaves cannot be confirmed. " + accessIssue);
                 PublishTerminal(false);
                 yield break;
             }
@@ -950,14 +943,17 @@ namespace Immersive.QaFramework.IfAdr042
                 }
             }
 
-            int leaveBudget = Mathf.Max(2, provisioning.RuntimeSnapshot.Slots.Count);
+            PlayerParticipationSnapshot beforeCleanup = CurrentSnapshot;
+            int leaveBudget = Mathf.Max(2, beforeCleanup != null ? beforeCleanup.Slots.Count : 2);
             for (int pass = 0; pass < leaveBudget; pass++)
             {
-                PlayerSlotRuntimeSnapshot joined = provisioning.RuntimeSnapshot.Slots
+                PlayerParticipationSnapshot current = CurrentSnapshot;
+                if (current == null) break;
+                PlayerSlotRuntimeSnapshot joined = current.Slots
                     .FirstOrDefault(slot => slot.IsJoined);
                 if (!joined.IsJoined) break;
 
-                SessionPlayerLeaveResult leave = provisioning.RequestLeave(
+                SessionPlayerLeaveResult leave = _sessionAccess.RequestLeave(
                     new SessionPlayerLeaveRequest(joined.PlayerSlotId, joined.Revision,
                         ScenarioId, "Unwind public Player Leave during QA cleanup."));
                 if (leave == null || !leave.Succeeded)
@@ -972,7 +968,7 @@ namespace Immersive.QaFramework.IfAdr042
 
             if (_joiningWasOpened)
             {
-                PlayerParticipationOperationResult close = provisioning.CloseJoining(
+                PlayerParticipationOperationResult close = _sessionAccess.CloseJoining(
                     ScenarioId, "Restore the initially closed QA Player joining state.");
                 if (close == null || !close.Succeeded)
                     SetCleanupIssue("Public CloseJoining cleanup failed: " + close?.ToDiagnosticString());
@@ -986,7 +982,7 @@ namespace Immersive.QaFramework.IfAdr042
             string baselineIssue = string.Empty;
             bool baselineRestored = string.IsNullOrEmpty(_cleanupIssue) &&
                 VerifyStage("cleanup baseline", Array.Empty<PlayerSlotId>(), out baselineIssue) &&
-                !provisioning.RuntimeSnapshot.JoiningOpen &&
+                CurrentSnapshot != null && !CurrentSnapshot.JoiningOpen &&
                 (_player1Device == null || !_player1Device.added) &&
                 (_player2Device == null || !_player2Device.added);
             if (!baselineRestored && string.IsNullOrEmpty(_cleanupIssue))
@@ -1030,7 +1026,7 @@ namespace Immersive.QaFramework.IfAdr042
                 yield return null;
             }
             _waitIssue = timeoutIssue + " " +
-                (provisioning != null ? provisioning.RuntimeDiagnostic : string.Empty) + " " +
+                (routeSessionObserver != null ? routeSessionObserver.Diagnostic : string.Empty) + " " +
                 (evidence != null
                     ? $"evidenceOutputs='{evidence.Outputs.Count}' evidenceOccurrences='{evidence.Occurrences.Count}' evidenceDiagnostic='{evidence.Diagnostic}'"
                     : "evidence='<missing>'") + " " +

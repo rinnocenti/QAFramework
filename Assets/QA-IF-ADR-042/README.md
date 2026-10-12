@@ -6,12 +6,12 @@ This QA certifies the public SharedGroup contract using one ManagerProvisioned P
 
 1. In Unity, run **Immersive Framework → QA → IF-ADR-042 → Configure SharedGroup Certification**.
 2. Run Configure a second time. Both runs must complete with `setup='Configured' baseline='Valid'`; this checks that the generated assets, scene bindings, and Build Settings remain idempotent.
-3. Select `GameApplication_QaIfAdr042` in `ImmersiveFrameworkSettings` and open `Assets/QA-IF-ADR-042/Scenes/QA_IF_ADR_042_Persistent.unity`.
+3. Select `GameApplication_QaIfAdr042` in `ImmersiveFrameworkSettings` and open its primary Route scene, `Assets/QA-IF-ADR-042/Scenes/QA_IF_ADR_042_Route.unity`.
 4. Start a fresh Play Mode session and wait for the terminal `[IF-ADR-042-SHARED-GROUP]` line.
 
 The expected terminal is `verdict='PASS'` and `cleanup='BaselineRestored'`. `BLOCKED` means an authored/runtime precondition prevented the contract from being exercised; `FAIL` means an observed contract divergence. The terminal includes the first causal issue and cleanup result.
 
-The Manager-Provisioned endpoint and Scenario live in Persistent Content. The Activity-scoped `PlayerSessionObserver` is authored in the generated Activity content scene, where the Framework exposes Activity-scoped Player Session access. The Scenario resolves that observer from the declared Activity content scene at runtime.
+The Manager-Provisioned endpoint remains in Persistent Content. The Scenario, Route-scoped `PlayerSessionObserver`, and Route-scoped `PlayerSessionJoinTrigger` live on the primary Route occurrence. The Activity-scoped observer remains in the generated Activity content scene for Actor-specific observation. Join begins only after the scoped Route access is available.
 
 ## Certified transitions
 

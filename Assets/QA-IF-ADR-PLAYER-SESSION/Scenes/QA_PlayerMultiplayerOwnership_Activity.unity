@@ -152,7 +152,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Immersive.QaFramework.PlayerSession.QaPlayerSessionMultiplayerOwnershipScenario
   sessionObserver: {fileID: 1973106553}
-  joinCommand: {fileID: 1973106552}
+  joinTrigger: {fileID: 1973106552}
   expectedP1: {fileID: 11400000, guid: a31a80c34b6e37d47afb51a40b169fb7, type: 2}
   expectedP2: {fileID: 11400000, guid: a3610ce8d93a1f440b0f40bafe4ccbc1, type: 2}
   expectedDefaultActor: {fileID: 11400000, guid: 61db6e11336abdb4c889049fc42cdc66, type: 2}
@@ -166,9 +166,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1973106550}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a1ab0b68f54b074babd906b60740182, type: 3}
+  m_Script: {fileID: 11500000, guid: 5b9a5ffbb42643c3ab9ba6af6c43198d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionJoinCommandTrigger
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.PlayerSessionJoinTrigger
   scope: 20
   reason: 
   controlScheme: QA.Keyboard

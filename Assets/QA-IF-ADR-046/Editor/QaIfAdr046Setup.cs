@@ -119,12 +119,11 @@ namespace Immersive.QaFramework.IfAdr046.Editor
 
             foreach (QaPlayerSessionJoinScenario oldScenario in FindComponents<QaPlayerSessionJoinScenario>(scene))
                 UnityEngine.Object.DestroyImmediate(oldScenario);
-            foreach (PlayerSessionJoinCommandTrigger oldTrigger in FindComponents<PlayerSessionJoinCommandTrigger>(scene))
-                UnityEngine.Object.DestroyImmediate(oldTrigger);
+            foreach (PlayerSessionJoinTrigger existingTrigger in FindComponents<PlayerSessionJoinTrigger>(scene))
+                UnityEngine.Object.DestroyImmediate(existingTrigger);
 
             GameObject root = observers[0].gameObject;
-            PlayerSessionJoinTrigger trigger = root.GetComponent<PlayerSessionJoinTrigger>();
-            if (trigger == null) trigger = root.AddComponent<PlayerSessionJoinTrigger>();
+            PlayerSessionJoinTrigger trigger = root.AddComponent<PlayerSessionJoinTrigger>();
             SerializedObject triggerObject = new SerializedObject(trigger);
             SerializedProperty scope = triggerObject.FindProperty("scope");
             scope.enumValueIndex = Array.IndexOf(scope.enumNames, nameof(LocalPlayerProvisioningConsumerScope.Activity));

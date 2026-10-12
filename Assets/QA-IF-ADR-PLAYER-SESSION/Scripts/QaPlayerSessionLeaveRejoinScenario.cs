@@ -17,7 +17,7 @@ namespace Immersive.QaFramework.PlayerSession
         private const string ScenarioId = "QA-PLAYER-LEAVE-REJOIN-OCCURRENCE";
 
         [SerializeField] private PlayerSessionObserver sessionObserver;
-        [SerializeField] private PlayerSessionJoinCommandTrigger joinCommand;
+        [SerializeField] private PlayerSessionJoinTrigger joinTrigger;
         [SerializeField] private PlayerSlotProfile expectedSlot;
         [SerializeField] private ActorProfile expectedDefaultActor;
         [SerializeField, Min(1)] private int frameBudget = 600;
@@ -25,8 +25,6 @@ namespace Immersive.QaFramework.PlayerSession
         private readonly QaCertificationRecorder _recorder = new QaCertificationRecorder();
         private IPlayerSessionScopedAccess _access;
         private Keyboard _keyboard;
-        private LocalPlayerJoinResult _joinA;
-        private LocalPlayerJoinResult _joinB;
         private OccurrenceEvidence _occurrenceA;
         private OccurrenceEvidence _occurrenceB;
         private string _firstIssue = string.Empty;
@@ -82,14 +80,13 @@ namespace Immersive.QaFramework.PlayerSession
             }
 
             _stage = "join-a";
-            joinCommand.InvokeFromDevice(_keyboard);
-            _joinA = joinCommand.LastJoinResult;
-            _joinAStatus = _joinA != null ? _joinA.Status.ToString() : "null";
-            if (!ValidateJoin(_joinA, "Actor A"))
+            LocalPlayerJoinOutcome joinA = RequestJoin("actor-a");
+            _joinAStatus = joinA != null ? joinA.Code.ToString() : "null";
+            if (!ValidateJoin(joinA, "Actor A"))
             {
                 yield return CleanupAndPublish(); yield break;
             }
-            yield return WaitForOccurrence(_joinA, true);
+            yield return WaitForOccurrence(_keyboard, true);
             if (HasIssue) { yield return CleanupAndPublish(); yield break; }
             LogStage("join-a-ready", Describe(_occurrenceA));
 
@@ -105,14 +102,13 @@ namespace Immersive.QaFramework.PlayerSession
             LogStage("leave-a-released", "oldActorRuntimeDestroyed='true' sessionSlotAvailable='true' currentActor='none'");
 
             _stage = "join-b";
-            joinCommand.InvokeFromDevice(_keyboard);
-            _joinB = joinCommand.LastJoinResult;
-            _joinBStatus = _joinB != null ? _joinB.Status.ToString() : "null";
-            if (!ValidateJoin(_joinB, "Actor B"))
+            LocalPlayerJoinOutcome joinB = RequestJoin("actor-b");
+            _joinBStatus = joinB != null ? joinB.Code.ToString() : "null";
+            if (!ValidateJoin(joinB, "Actor B"))
             {
                 yield return CleanupAndPublish(); yield break;
             }
-            yield return WaitForOccurrence(_joinB, false);
+            yield return WaitForOccurrence(_keyboard, false);
             if (HasIssue) { yield return CleanupAndPublish(); yield break; }
             if (!ValidateRejoinIdentity())
             {
@@ -152,7 +148,7 @@ namespace Immersive.QaFramework.PlayerSession
             _stage = "baseline";
             for (int frame = 0; frame < Mathf.Max(1, frameBudget); frame++)
             {
-                if (sessionObserver != null && joinCommand != null && expectedSlot != null && expectedDefaultActor != null &&
+                if (sessionObserver != null && joinTrigger != null && expectedSlot != null && expectedDefaultActor != null &&
                     sessionObserver.IsAvailable && sessionObserver.TryGetAccess(out _access, out _) && _access != null &&
                     sessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot) && snapshot.IsInitialized &&
                     snapshot.ConfiguredSlotCount == 1 && snapshot.Slots.Count == 1 && snapshot.Slots[0].Profile == expectedSlot &&
@@ -161,40 +157,41 @@ namespace Immersive.QaFramework.PlayerSession
                     sessionObserver.CurrentObservation.InitializationConfiguration != null &&
                     sessionObserver.CurrentObservation.InitializationConfiguration.ActorResolutionPolicy == PlayerActorResolutionPolicy.ResolveConfiguredDefault &&
                     sessionObserver.Scope == LocalPlayerProvisioningConsumerScope.Activity &&
-                    joinCommand.Scope == LocalPlayerProvisioningConsumerScope.Activity &&
-                    joinCommand.TryGetJoinAccess(out ILocalPlayerJoinAccess joinAccess, out _) && joinAccess != null)
+                    joinTrigger.Scope == LocalPlayerProvisioningConsumerScope.Activity)
                 {
                     LogStage("baseline", $"sessionRevision='{snapshot.Revision}' slots='{snapshot.ConfiguredSlotCount}' joiningOpen='false' joined='0' provisioning='ManagerProvisioned'");
                     yield break;
                 }
                 yield return null;
             }
-            RecordBlocked("Valid empty/closed Activity-scoped Session baseline or Manager-Provisioned Join authority was unavailable.");
+            RecordBlocked("Valid empty/closed Activity-scoped Session baseline or public Join trigger was unavailable.");
         }
 
-        private bool ValidateJoin(LocalPlayerJoinResult result, string occurrenceName)
+        private LocalPlayerJoinOutcome RequestJoin(string reason)
         {
-            if (result == null || !result.Completed || !result.Succeeded)
-            {
-                string diagnostic = result != null ? result.ToDiagnosticString() : "null result";
-                if (result == null || result.Status is LocalPlayerJoinStatus.RejectedRuntimeUnavailable or
-                    LocalPlayerJoinStatus.RejectedManagerUnavailable or LocalPlayerJoinStatus.RejectedManagerConfiguration)
-                    RecordBlocked(occurrenceName + " Join could not be exercised because runtime/manager preconditions were unavailable. " + diagnostic);
-                else RecordFail(occurrenceName + " Join returned an unsuccessful typed result. " + diagnostic);
-                return false;
-            }
+            return joinTrigger != null
+                ? joinTrigger.RequestJoin(new LocalPlayerJoinRequest(ScenarioId, reason, _keyboard))
+                : null;
+        }
 
-            if (!result.Slot.IsJoined || result.Slot.PlayerSlotId != expectedSlot.PlayerSlotId ||
-                result.LocalPlayerHost == null || result.PlayerInput == null ||
-                !ReferenceEquals(result.LocalPlayerHost.PlayerInput, result.PlayerInput))
+        private bool ValidateJoin(LocalPlayerJoinOutcome outcome, string occurrenceName)
+        {
+            if (outcome == null || outcome.Code != LocalPlayerJoinOutcomeCode.Joined ||
+                outcome.AdmissionState != LocalPlayerJoinAdmissionState.Admitted)
             {
-                RecordFail(occurrenceName + " Join did not correlate the configured P1 Slot, PlayerInput and Local Player Host.");
+                string diagnostic = outcome != null
+                    ? $"code='{outcome.Code}' admission='{outcome.AdmissionState}'"
+                    : "null outcome";
+                if (outcome == null || outcome.Code is LocalPlayerJoinOutcomeCode.RejectedUnavailable or
+                    LocalPlayerJoinOutcomeCode.RejectedConfiguration)
+                    RecordBlocked(occurrenceName + " Join could not be exercised because runtime/manager preconditions were unavailable. " + diagnostic);
+                else RecordFail(occurrenceName + " Join returned an unsuccessful typed outcome. " + diagnostic);
                 return false;
             }
             return true;
         }
 
-        private IEnumerator WaitForOccurrence(LocalPlayerJoinResult join, bool captureA)
+        private IEnumerator WaitForOccurrence(InputDevice device, bool captureA)
         {
             _stage = captureA ? "observe-actor-a" : "observe-actor-b";
             PlayerSessionScopedSlotObservation lastObservation = default;
@@ -209,7 +206,18 @@ namespace Immersive.QaFramework.PlayerSession
                     if (current.IsJoined && current.HasCurrentActorEvidence && current.CurrentActor.HasCurrentActor &&
                         current.IsLogicalActorPrepared && current.IsPhysicallyMaterialized)
                     {
-                        if (!TryCapture(join, current, out OccurrenceEvidence evidence, out bool observabilityUnavailable, out issue))
+                        if (!QaPlayerSessionJoinEvidenceReader.TryCapture(
+                                sessionObserver,
+                                current.Slot.PlayerSlotId,
+                                device,
+                                out QaPlayerSessionJoinEvidence joined,
+                                out issue))
+                        {
+                            yield return null;
+                            continue;
+                        }
+
+                        if (!TryCapture(joined, current, out OccurrenceEvidence evidence, out bool observabilityUnavailable, out issue))
                         {
                             if (observabilityUnavailable)
                                 RecordBlocked("Required public Actor/occurrence identity evidence is unavailable. " + issue);
@@ -242,7 +250,7 @@ namespace Immersive.QaFramework.PlayerSession
         }
 
         private bool TryCapture(
-            LocalPlayerJoinResult join,
+            QaPlayerSessionJoinEvidence join,
             PlayerSessionScopedSlotObservation observation,
             out OccurrenceEvidence evidence,
             out bool observabilityUnavailable,
@@ -259,13 +267,13 @@ namespace Immersive.QaFramework.PlayerSession
                 issue = "Actor correlation, RuntimeContentIdentity or HostBindingIdentity is not available from the public observation.";
                 return false;
             }
-            if (join == null || join.LocalPlayerHost == null || join.PlayerInput == null || join.LocalPlayerHost.ActorMount == null)
+            if (join.Host == null || join.PlayerInput == null || join.Host.ActorMount == null)
             {
                 issue = "A successful Join did not retain the exact Local Player Host, PlayerInput or Actor Mount.";
                 return false;
             }
 
-            PlayerActorRuntimeHost[] actorHosts = join.LocalPlayerHost.ActorMount.GetComponentsInChildren<PlayerActorRuntimeHost>(true);
+            PlayerActorRuntimeHost[] actorHosts = join.Host.ActorMount.GetComponentsInChildren<PlayerActorRuntimeHost>(true);
             if (actorHosts.Length != 1 || actorHosts[0] == null)
             {
                 issue = "The explicitly owned Host Actor Mount must contain exactly one materialized PlayerActorRuntimeHost; found '" + actorHosts.Length + "'.";
@@ -281,7 +289,7 @@ namespace Immersive.QaFramework.PlayerSession
                 observation.CurrentActor.ActorEvidence.RuntimeContentIdentity,
                 observation.CurrentActor.ActorEvidence.MaterializationRevision,
                 observation.CurrentActor.ActorEvidence.CorrelationRevision,
-                join.LocalPlayerHost,
+                join.Host,
                 join.PlayerInput,
                 actorHosts[0]);
             if (!evidence.SlotId.IsValid || !evidence.PlayerOccurrenceId.IsValid)

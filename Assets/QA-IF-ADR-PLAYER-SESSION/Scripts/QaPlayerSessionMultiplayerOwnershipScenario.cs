@@ -17,7 +17,7 @@ namespace Immersive.QaFramework.PlayerSession
         private const string ScenarioId = "QA-PLAYER-MULTIPLAYER-OWNERSHIP";
 
         [SerializeField] private PlayerSessionObserver sessionObserver;
-        [SerializeField] private PlayerSessionJoinCommandTrigger joinCommand;
+        [SerializeField] private PlayerSessionJoinTrigger joinTrigger;
         [SerializeField] private PlayerSlotProfile expectedP1;
         [SerializeField] private PlayerSlotProfile expectedP2;
         [SerializeField] private ActorProfile expectedDefaultActor;
@@ -27,9 +27,10 @@ namespace Immersive.QaFramework.PlayerSession
         private IPlayerSessionScopedAccess _access;
         private Keyboard _deviceA;
         private Keyboard _deviceB;
-        private LocalPlayerJoinResult _joinA;
-        private LocalPlayerJoinResult _joinB;
-        private LocalPlayerJoinResult _rejoinA;
+        private QaPlayerSessionJoinEvidence _joinA;
+        private QaPlayerSessionJoinEvidence _joinB;
+        private QaPlayerSessionJoinEvidence _rejoinA;
+        private QaPlayerSessionJoinEvidence _waitJoin;
         private PlayerOccurrenceId _occurrenceA;
         private PlayerOccurrenceId _occurrenceB;
         private PlayerInput _inputA;
@@ -126,13 +127,13 @@ namespace Immersive.QaFramework.PlayerSession
             LogStage("devices", $"deviceA='{_deviceA.deviceId}' deviceB='{_deviceB.deviceId}' distinct='{!ReferenceEquals(_deviceA, _deviceB)}'");
 
             _stage = "join-p1-with-device-a";
-            joinCommand.InvokeFromDevice(_deviceA);
-            _joinA = joinCommand.LastJoinResult;
-            _joinAStatus = _joinA != null ? _joinA.Status.ToString() : "null";
-            if (!ValidateJoin(_joinA, expectedP1, _deviceA, "P1/Device A")) { yield return CleanupAndPublish(); yield break; }
+            LocalPlayerJoinOutcome joinA = RequestJoin(_deviceA, "join-p1-device-a");
+            _joinAStatus = joinA != null ? joinA.Code.ToString() : "null";
+            if (!ValidateJoin(joinA, "P1/Device A")) { yield return CleanupAndPublish(); yield break; }
+            yield return WaitForActor(expectedP1, _deviceA);
+            _joinA = _waitJoin;
             _inputA = _joinA.PlayerInput;
-            _hostA = _joinA.LocalPlayerHost;
-            yield return WaitForActor(_joinA);
+            _hostA = _joinA.Host;
             _occurrenceA = _waitOccurrence;
             _actorA = _waitActor;
             if (HasIssue) { yield return CleanupAndPublish(); yield break; }
@@ -140,13 +141,13 @@ namespace Immersive.QaFramework.PlayerSession
             LogStage("join-p1-ready", DescribeCurrent(_joinA.Slot.PlayerSlotId));
 
             _stage = "join-p2-with-device-b";
-            joinCommand.InvokeFromDevice(_deviceB);
-            _joinB = joinCommand.LastJoinResult;
-            _joinBStatus = _joinB != null ? _joinB.Status.ToString() : "null";
-            if (!ValidateJoin(_joinB, expectedP2, _deviceB, "P2/Device B")) { yield return CleanupAndPublish(); yield break; }
+            LocalPlayerJoinOutcome joinB = RequestJoin(_deviceB, "join-p2-device-b");
+            _joinBStatus = joinB != null ? joinB.Code.ToString() : "null";
+            if (!ValidateJoin(joinB, "P2/Device B")) { yield return CleanupAndPublish(); yield break; }
+            yield return WaitForActor(expectedP2, _deviceB);
+            _joinB = _waitJoin;
             _inputB = _joinB.PlayerInput;
-            _hostB = _joinB.LocalPlayerHost;
-            yield return WaitForActor(_joinB);
+            _hostB = _joinB.Host;
             _occurrenceB = _waitOccurrence;
             _actorB = _waitActor;
             if (HasIssue) { yield return CleanupAndPublish(); yield break; }
@@ -196,25 +197,25 @@ namespace Immersive.QaFramework.PlayerSession
                 yield return CleanupAndPublish(); yield break;
             }
             _stage = "rejoin-p1-with-device-a";
-            joinCommand.InvokeFromDevice(_deviceA);
-            _rejoinA = joinCommand.LastJoinResult;
-            _rejoinAStatus = _rejoinA != null ? _rejoinA.Status.ToString() : "null";
-            if (!ValidateJoin(_rejoinA, expectedP1, _deviceA, "P1 rejoin/Device A")) { yield return CleanupAndPublish(); yield break; }
+            LocalPlayerJoinOutcome rejoinA = RequestJoin(_deviceA, "rejoin-p1-device-a");
+            _rejoinAStatus = rejoinA != null ? rejoinA.Code.ToString() : "null";
+            if (!ValidateJoin(rejoinA, "P1 rejoin/Device A")) { yield return CleanupAndPublish(); yield break; }
             PlayerOccurrenceId rejoinedOccurrence = default;
             PlayerActorDeclaration rejoinedActor = null;
-            yield return WaitForActor(_rejoinA);
+            yield return WaitForActor(expectedP1, _deviceA);
+            _rejoinA = _waitJoin;
             rejoinedOccurrence = _waitOccurrence;
             rejoinedActor = _waitActor;
             if (HasIssue) { yield return CleanupAndPublish(); yield break; }
             _p2PreservedAfterRejoin = ValidatePlayer(expectedP2, _inputB, _hostB, _actorB, _occurrenceB, _deviceB);
             if (rejoinedOccurrence == _occurrenceA || ReferenceEquals(rejoinedActor, _actorA) ||
-                ReferenceEquals(_rejoinA.LocalPlayerHost, _hostA) || ReferenceEquals(_rejoinA.PlayerInput, _inputA) || !_p2PreservedAfterRejoin)
+                ReferenceEquals(_rejoinA.Host, _hostA) || ReferenceEquals(_rejoinA.PlayerInput, _inputA) || !_p2PreservedAfterRejoin)
             {
                 RecordFail("P1 rejoin reused its old occurrence/Actor/Host/PlayerInput reference or interfered with P2.");
                 yield return CleanupAndPublish(); yield break;
             }
             _inputA = _rejoinA.PlayerInput;
-            _hostA = _rejoinA.LocalPlayerHost;
+            _hostA = _rejoinA.Host;
             _actorA = rejoinedActor;
             LogStage("rejoin-p1-isolated", $"oldOccurrence='{_occurrenceA}' newOccurrence='{rejoinedOccurrence}' p2Preserved='{_p2PreservedAfterRejoin}'");
             _stage = "cleanup";
@@ -226,59 +227,71 @@ namespace Immersive.QaFramework.PlayerSession
             _stage = "baseline";
             for (int frame = 0; frame < Mathf.Max(1, frameBudget); frame++)
             {
-                if (sessionObserver != null && joinCommand != null && expectedP1 != null && expectedP2 != null && expectedDefaultActor != null &&
+                if (sessionObserver != null && joinTrigger != null && expectedP1 != null && expectedP2 != null && expectedDefaultActor != null &&
                     expectedP1 != expectedP2 && sessionObserver.IsAvailable && sessionObserver.TryGetAccess(out _access, out _) && _access != null &&
                     sessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot) && snapshot.IsInitialized && snapshot.ConfiguredSlotCount == 2 &&
                     snapshot.Slots.Count == 2 && snapshot.Slots[0].Profile == expectedP1 && snapshot.Slots[1].Profile == expectedP2 &&
                     snapshot.AvailableCount == 2 && snapshot.JoinedCount == 0 && snapshot.ReservedCount == 0 && !snapshot.JoiningOpen &&
                     snapshot.ActorSelectionDuplicatePolicy == PlayerActorSelectionDuplicatePolicy.AllowDuplicates &&
                     expectedP1.DefaultActorProfile == expectedDefaultActor && expectedP2.DefaultActorProfile == expectedDefaultActor &&
-                    joinCommand.TryGetJoinAccess(out ILocalPlayerJoinAccess joinAccess, out _) && joinAccess != null)
+                    joinTrigger.Scope == LocalPlayerProvisioningConsumerScope.Activity)
                 {
                     LogStage("baseline", $"slots='{snapshot.ConfiguredSlotCount}' available='{snapshot.AvailableCount}' joined='{snapshot.JoinedCount}' reserved='{snapshot.ReservedCount}' joiningOpen='{snapshot.JoiningOpen}' actorDuplicatePolicy='{snapshot.ActorSelectionDuplicatePolicy}'");
                     yield break;
                 }
                 yield return null;
             }
-            RecordBlocked("Two-Slot empty Session baseline, ordered allocation, or public Manager-Provisioned Join authority was unavailable.");
+            RecordBlocked("Two-Slot empty Session baseline, ordered allocation, or Activity-scoped public Join trigger was unavailable.");
         }
 
-        private bool ValidateJoin(LocalPlayerJoinResult result, PlayerSlotProfile expectedSlot, InputDevice device, string label)
+        private LocalPlayerJoinOutcome RequestJoin(InputDevice device, string reason)
         {
-            if (result == null || !result.Completed || !result.Succeeded)
+            return joinTrigger != null
+                ? joinTrigger.RequestJoin(new LocalPlayerJoinRequest(ScenarioId, reason, device))
+                : null;
+        }
+
+        private bool ValidateJoin(LocalPlayerJoinOutcome outcome, string label)
+        {
+            if (outcome == null || outcome.Code != LocalPlayerJoinOutcomeCode.Joined ||
+                outcome.AdmissionState != LocalPlayerJoinAdmissionState.Admitted)
             {
-                string diagnostic = result != null ? result.ToDiagnosticString() : "null result";
-                if (result == null || result.Status is LocalPlayerJoinStatus.RejectedRuntimeUnavailable or LocalPlayerJoinStatus.RejectedManagerUnavailable or LocalPlayerJoinStatus.RejectedManagerConfiguration)
+                string diagnostic = outcome != null
+                    ? $"code='{outcome.Code}' admission='{outcome.AdmissionState}'"
+                    : "null outcome";
+                if (outcome == null || outcome.Code is LocalPlayerJoinOutcomeCode.RejectedUnavailable or LocalPlayerJoinOutcomeCode.RejectedConfiguration)
                     RecordBlocked(label + " could not be exercised because Join authority or provisioning preconditions were unavailable. " + diagnostic);
-                else RecordFail(label + " Join returned an unsuccessful typed result. " + diagnostic);
-                return false;
-            }
-            if (result.Slot.Profile != expectedSlot || result.LocalPlayerHost == null || result.PlayerInput == null ||
-                !ReferenceEquals(result.LocalPlayerHost.PlayerInput, result.PlayerInput) || !OwnsOnly(result.PlayerInput, device))
-            {
-                RecordFail(label + " Join did not correlate the expected Slot, exact Host/PlayerInput and only its requested device.");
+                else RecordFail(label + " Join returned an unsuccessful typed outcome. " + diagnostic);
                 return false;
             }
             return true;
         }
 
-        private IEnumerator WaitForActor(LocalPlayerJoinResult join)
+        private IEnumerator WaitForActor(PlayerSlotProfile expectedSlot, InputDevice requestedDevice)
         {
             _waitOccurrence = default;
             _waitActor = null;
+            _waitJoin = default;
             for (int frame = 0; frame < Mathf.Max(1, frameBudget); frame++)
             {
-                if (TryGetSlot(join.Slot.PlayerSlotId, out PlayerSessionScopedSlotObservation observed) &&
+                if (expectedSlot != null && TryGetSlot(expectedSlot.PlayerSlotId, out PlayerSessionScopedSlotObservation observed) &&
                     observed.IsJoined && observed.HasSelectedActor && observed.Slot.SelectedActorProfile == expectedDefaultActor &&
                     observed.IsLogicalActorPrepared && observed.IsPhysicallyMaterialized &&
                     observed.HasCurrentActorEvidence && observed.CurrentActor.HasCurrentActor &&
-                    observed.HasInputOwnershipEvidence)
+                    observed.HasInputOwnershipEvidence &&
+                    QaPlayerSessionJoinEvidenceReader.TryCapture(
+                        sessionObserver,
+                        expectedSlot.PlayerSlotId,
+                        requestedDevice,
+                        out _waitJoin,
+                        out _))
                 {
                     _waitOccurrence = observed.Slot.PlayerOccurrenceId;
-                    LocalPlayerHostAuthoring host = join.LocalPlayerHost;
+                    LocalPlayerHostAuthoring host = _waitJoin.Host;
                     PlayerActorRuntimeHost runtimeHost = host != null && host.ActorMount != null ? host.ActorMount.GetComponentInChildren<PlayerActorRuntimeHost>(true) : null;
                     _waitActor = runtimeHost != null ? runtimeHost.PlayerActorDeclaration : null;
-                    if (!_waitOccurrence.IsValid || _waitActor == null || _waitActor.PlayerInput != join.PlayerInput || !DeviceEvidence(observed, join.PlayerInput, join == _joinB ? _deviceB : _deviceA))
+                    if (!_waitOccurrence.IsValid || _waitActor == null || _waitActor.PlayerInput != _waitJoin.PlayerInput ||
+                        !OwnsOnly(_waitJoin.PlayerInput, requestedDevice) || !DeviceEvidence(observed, _waitJoin.PlayerInput, requestedDevice))
                     {
                         RecordFail("Prepared/materialized Actor or public device ownership evidence did not match its exact Join result.");
                         yield break;

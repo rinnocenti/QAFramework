@@ -452,11 +452,11 @@ namespace Immersive.QaFramework.PlayerSession.Editor
             Set(contribution, "activity", activity); Set(contribution, "localContentId", "qa.player.multiplayer.ownership.activity.main");
             PlayerSessionObserver observer = root.AddComponent<PlayerSessionObserver>();
             SetEnum(observer, "scope", "Activity");
-            PlayerSessionJoinCommandTrigger join = root.AddComponent<PlayerSessionJoinCommandTrigger>();
+            PlayerSessionJoinTrigger join = root.AddComponent<PlayerSessionJoinTrigger>();
             SetEnum(join, "scope", "Activity");
             Set(join, "controlScheme", ControlScheme);
             QaPlayerSessionMultiplayerOwnershipScenario scenario = root.AddComponent<QaPlayerSessionMultiplayerOwnershipScenario>();
-            Set(scenario, "sessionObserver", observer); Set(scenario, "joinCommand", join);
+            Set(scenario, "sessionObserver", observer); Set(scenario, "joinTrigger", join);
             Set(scenario, "expectedP1", slotP1); Set(scenario, "expectedP2", slotP2); Set(scenario, "expectedDefaultActor", actor);
             SaveScene(scene, ActivityScenePath);
         }
@@ -603,7 +603,7 @@ namespace Immersive.QaFramework.PlayerSession.Editor
             {
                 ActivityContentContribution[] contributions = Roots(activityScene).SelectMany(root => root.GetComponentsInChildren<ActivityContentContribution>(true)).ToArray();
                 PlayerSessionObserver[] observers = Roots(activityScene).SelectMany(root => root.GetComponentsInChildren<PlayerSessionObserver>(true)).ToArray();
-                PlayerSessionJoinCommandTrigger[] joins = Roots(activityScene).SelectMany(root => root.GetComponentsInChildren<PlayerSessionJoinCommandTrigger>(true)).ToArray();
+                PlayerSessionJoinTrigger[] joins = Roots(activityScene).SelectMany(root => root.GetComponentsInChildren<PlayerSessionJoinTrigger>(true)).ToArray();
                 QaPlayerSessionMultiplayerOwnershipScenario[] scenarios = Roots(activityScene).SelectMany(root => root.GetComponentsInChildren<QaPlayerSessionMultiplayerOwnershipScenario>(true)).ToArray();
                 ActivityAsset persistedActivity = AssetDatabase.LoadAssetAtPath<ActivityAsset>(ActivityPath);
                 ActivityContentProfileAsset persistedProfile = AssetDatabase.LoadAssetAtPath<ActivityContentProfileAsset>(ActivityProfilePath);
@@ -627,10 +627,9 @@ namespace Immersive.QaFramework.PlayerSession.Editor
                     !HasEnumValue(Require(profileScene, "releasePolicy"), "ReleaseOnActivityChange"))
                     throw new InvalidOperationException("Persisted Activity Content Profile scene entry is incomplete or points at the wrong scene.");
                 if (!observers[0].TryValidateConfiguration(out issue)) throw new InvalidOperationException("Activity Observer validation failed: " + issue);
-                if (!joins[0].TryValidateConfiguration(out issue)) throw new InvalidOperationException("Activity Join trigger validation failed: " + issue);
                 SerializedObject so = new SerializedObject(scenarios[0]); so.Update();
                 if (Require(so, "sessionObserver").objectReferenceValue != observers[0] ||
-                    Require(so, "joinCommand").objectReferenceValue != joins[0] ||
+                    Require(so, "joinTrigger").objectReferenceValue != joins[0] ||
                     Require(so, "expectedP1").objectReferenceValue != AssetDatabase.LoadAssetAtPath<PlayerSlotProfile>(SlotP1Path) ||
                     Require(so, "expectedP2").objectReferenceValue != AssetDatabase.LoadAssetAtPath<PlayerSlotProfile>(SlotP2Path) ||
                     Require(so, "expectedDefaultActor").objectReferenceValue != AssetDatabase.LoadAssetAtPath<ActorProfile>(ActorPath))

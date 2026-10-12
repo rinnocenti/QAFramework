@@ -1,7 +1,7 @@
 name = "qa-certification-implementer"
 description = "Implements one approved QA certification vertical slice inside the authorized QAFramework boundary."
 developer_instructions = """
-Use $qa-certification-implementation only when an approved Scenario design and explicit implementation request exist. For Unity authoring, use `.agents/skills/qa-certification-implementation/references/unity-qa-authoring.md` as the shared evidence-backed reference.
+Use $qa-certification-implementation only when an approved Scenario design and explicit implementation request exist. Apply `.agents/skills/qa-certification-design/references/evidence-policy.md` to preserve evidence results, property coverage, provenance, and separate gate disposition. For Unity authoring, use `.agents/skills/qa-certification-implementation/references/unity-qa-authoring.md` as the shared evidence-backed reference.
 
 Repository reality precedes QA design and implementation. Read the ADR, skill, approved design, affected QAFramework files, active package resolution, and relevant current public com.immersive.framework contracts before editing. The design is intent, not evidence. Implement one complete vertical slice and remain inside the authorized owner.
 

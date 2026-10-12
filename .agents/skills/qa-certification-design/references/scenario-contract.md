@@ -15,6 +15,8 @@ Use this brief to decide whether a proposed runtime Scenario has a supported and
 11. **Ownership and cleanup:** release in reverse ownership order; restore the environment; state `baseline restored` or `fresh runtime boot required`.
 12. **Gaps and unresolved decisions:** classify missing public observability/extension points and preserve decisions ADR-001 leaves open.
 
+For any proposed acceptance beyond a direct PASS, use the shared [evidence and acceptance policy](evidence-policy.md): map existing evidence to properties first, preserve individual results/provenance, and record a separate gate disposition. Justify additional infrastructure by the specific risk and uncovered property.
+
 The causal shape is:
 
 `valid environment → verified baseline → supported action → expected evidence → terminal condition → cleanup → restored baseline or fresh boot → verdict`

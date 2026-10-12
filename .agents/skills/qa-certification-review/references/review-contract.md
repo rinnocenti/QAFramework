@@ -1,6 +1,7 @@
 # QA Certification Review Contract
 
 For Unity authoring details, use the single [Unity QA authoring reference](../../qa-certification-implementation/references/unity-qa-authoring.md).
+For evidence and gate disposition, apply the shared [evidence and acceptance policy](../../qa-certification-design/references/evidence-policy.md).
 
 Verify and report:
 
@@ -17,6 +18,7 @@ Verify and report:
 11. No parallel runtime, private/internal access, hidden lookup, unowned environment mutation, or silent repair.
 12. ADR-001 decisions that remain deliberately unresolved.
 13. Compiler/API evidence: verify namespaces, exact signatures/overloads, Unity Editor API availability and assembly references against the active package/Unity version; do not treat an unexecuted compile as PASS.
+14. Evidence-result, property-coverage, and gate-disposition separation; provenance and residual-risk preservation; compliance with any gate-specific mandatory proof.
 
 ### Checkpoints and aggregate terminal evidence
 

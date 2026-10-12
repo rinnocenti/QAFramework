@@ -6,6 +6,7 @@ using Immersive.Framework.Authoring;
 using Immersive.Framework.Camera;
 using Immersive.Framework.CameraAuthoring;
 using Immersive.Framework.PlayerParticipation;
+using Immersive.QaFramework.PlayerSession;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.QaFramework.IfAdr043;
 using Unity.Cinemachine;
@@ -104,9 +105,11 @@ namespace Immersive.QaFramework.IfAdr043.Editor
             second = LoadAsset<PlayerSlotProfile>(Settings + "/PlayerSlot_QaIfAdr043_P2.asset");
             playerPrefab = LoadAsset<GameObject>(Players + "/PF_LocalPlayerHost_QaIfAdr043.prefab");
             application = LoadAsset<GameApplicationAsset>(Settings + "/GameApplication_QaIfAdr043.asset");
-            GameObject scenarioPrefab = CreateScenarioPrefab(application, evidence, first, second);
+            CreateScenarioPrefab(application, evidence, first, second);
 
-            CreatePersistentScene(evidence, playerPrefab, first, second, scenarioPrefab);
+            CreatePersistentScene(playerPrefab);
+            ConfigureRouteScenario(LoadAsset<GameObject>(ScenarioPrefabPath),
+                LoadAsset<RouteAsset>(Settings + "/Route_QaIfAdr043.asset"));
             application = AssetDatabase.LoadAssetAtPath<GameApplicationAsset>(Settings + "/GameApplication_QaIfAdr043.asset");
             if (application == null)
                 throw new InvalidOperationException("The IF-ADR-043 Game Application asset could not be reloaded after scene authoring.");
@@ -377,8 +380,7 @@ namespace Immersive.QaFramework.IfAdr043.Editor
             }
         }
 
-        private static void CreatePersistentScene(QaIfAdr043CameraOutputEvidence evidence,
-            GameObject playerPrefab, PlayerSlotProfile first, PlayerSlotProfile second, GameObject scenarioPrefab)
+        private static void CreatePersistentScene(GameObject playerPrefab)
         {
             SceneSetup[] previous = EditorSceneManager.GetSceneManagerSetup();
             try
@@ -400,36 +402,41 @@ namespace Immersive.QaFramework.IfAdr043.Editor
                     manager.maxPlayerCount != 2 || manager.playerPrefab != playerPrefab)
                     throw new InvalidOperationException("IF-ADR-043 provisioning registration must point to the authored endpoint and a two-player manager before the persistent scene is saved.");
 
-                GameObject scenarioObject = PrefabUtility.InstantiatePrefab(scenarioPrefab, scene) as GameObject;
-                if (scenarioObject == null)
-                    throw new InvalidOperationException("IF-ADR-043 scenario prefab could not be instantiated into Persistent Content.");
-                QaIfAdr043PhysicalParticipationScenario scenario = scenarioObject.GetComponent<QaIfAdr043PhysicalParticipationScenario>();
-                if (scenario == null)
-                    throw new InvalidOperationException("IF-ADR-043 scenario prefab is missing its certification component.");
-                ConfigureScenarioProvisioningReferences(scenario, provisioning, registration);
                 EditorSceneManager.MarkSceneDirty(scene);
                 if (!EditorSceneManager.SaveScene(scene, PersistentScene)) throw new InvalidOperationException("Could not save IF-ADR-043 Persistent Content scene.");
             }
             finally { EditorSceneManager.RestoreSceneManagerSetup(previous); }
         }
 
-        private static void ConfigureScenarioProvisioningReferences(QaIfAdr043PhysicalParticipationScenario scenario,
-            LocalPlayerProvisioningAuthoring provisioning, LocalPlayerProvisioningEndpointRegistration registration)
+        private static void ConfigureRouteScenario(GameObject scenarioPrefab, RouteAsset route)
         {
-            var serialized = new SerializedObject(scenario);
-            serialized.Update();
-            Require(serialized, "provisioning").objectReferenceValue = provisioning;
-            Require(serialized, "provisioningRegistration").objectReferenceValue = registration;
-            serialized.ApplyModifiedProperties();
-            EditorUtility.SetDirty(scenario);
-            PrefabUtility.RecordPrefabInstancePropertyModifications(scenario);
-
-            serialized.Update();
-            var missing = new List<string>();
-            ValidateScenarioBinding(serialized, "provisioning", provisioning, missing);
-            ValidateScenarioBinding(serialized, "provisioningRegistration", registration, missing);
-            if (missing.Count > 0)
-                throw new InvalidOperationException("IF-ADR-043 scenario provisioning references could not be applied before scene save: " + string.Join(", ", missing) + ".");
+            SceneSetup[] previous = EditorSceneManager.GetSceneManagerSetup();
+            try
+            {
+                Scene scene = OpenSceneForValidation(RouteScene, out bool opened);
+                RouteContentContribution[] contributions = scene.GetRootGameObjects()
+                    .SelectMany(root => root.GetComponentsInChildren<RouteContentContribution>(true)).ToArray();
+                if (contributions.Length != 1 || contributions[0].Route != route)
+                    throw new InvalidOperationException("IF-ADR-043 Route scene must have exactly one contribution for its owning Route before adding scoped consumers.");
+                GameObject bindingRoot = contributions[0].gameObject;
+                PlayerSessionObserver observer = bindingRoot.GetComponent<PlayerSessionObserver>() ?? bindingRoot.AddComponent<PlayerSessionObserver>();
+                PlayerSessionJoinTrigger trigger = bindingRoot.GetComponent<PlayerSessionJoinTrigger>() ?? bindingRoot.AddComponent<PlayerSessionJoinTrigger>();
+                Set(observer, "scope", (int)LocalPlayerProvisioningConsumerScope.Route);
+                Set(trigger, "scope", (int)LocalPlayerProvisioningConsumerScope.Route);
+                foreach (QaIfAdr043PhysicalParticipationScenario old in scene.GetRootGameObjects()
+                             .SelectMany(root => root.GetComponentsInChildren<QaIfAdr043PhysicalParticipationScenario>(true)).ToArray())
+                    Object.DestroyImmediate(old.gameObject);
+                GameObject instance = PrefabUtility.InstantiatePrefab(scenarioPrefab, scene) as GameObject;
+                if (instance == null) throw new InvalidOperationException("IF-ADR-043 scenario could not be instantiated into its Route scene.");
+                QaIfAdr043PhysicalParticipationScenario scenario = instance.GetComponent<QaIfAdr043PhysicalParticipationScenario>();
+                Set(scenario, "routeSessionObserver", observer);
+                Set(scenario, "joinTrigger", trigger);
+                PrefabUtility.RecordPrefabInstancePropertyModifications(scenario);
+                EditorSceneManager.MarkSceneDirty(scene);
+                if (!EditorSceneManager.SaveScene(scene)) throw new InvalidOperationException("Could not save IF-ADR-043 Route scene with scoped consumers.");
+                if (opened) EditorSceneManager.CloseScene(scene, false);
+            }
+            finally { EditorSceneManager.RestoreSceneManagerSetup(previous); }
         }
 
         private static OutputChannels ParseChannel(string id)
@@ -532,7 +539,7 @@ namespace Immersive.QaFramework.IfAdr043.Editor
             ValidateBuildSettingsScene(RouteScene);
             ValidateBuildSettingsScene(PersistentScene);
 
-            ValidatePersistentScene(evidence, application, playerPrefab, first, second);
+            ValidatePersistentScene(playerPrefab);
             ValidateRouteScene(route);
         }
 
@@ -636,15 +643,14 @@ namespace Immersive.QaFramework.IfAdr043.Editor
             ValidateScenarioBinding(serialized, "outputEvidence", evidence, mismatchedBindings);
             ValidateScenarioBinding(serialized, "player1", first, mismatchedBindings);
             ValidateScenarioBinding(serialized, "player2", second, mismatchedBindings);
-            if (Require(serialized, "provisioning").objectReferenceValue != null ||
-                Require(serialized, "provisioningRegistration").objectReferenceValue != null)
-                mismatchedBindings.Add("scene-scoped provisioning references must remain unassigned on the prefab");
+            if (Require(serialized, "routeSessionObserver").objectReferenceValue != null ||
+                Require(serialized, "joinTrigger").objectReferenceValue != null)
+                mismatchedBindings.Add("Route-scoped observer and Join trigger must remain unassigned on the prefab");
             if (mismatchedBindings.Count > 0)
                 throw new InvalidOperationException("IF-ADR-043 setup validation failed: scenario prefab serialized bindings differ from the generated baseline: " + string.Join(", ", mismatchedBindings) + ".");
         }
 
-        private static void ValidatePersistentScene(QaIfAdr043CameraOutputEvidence evidence,
-            GameApplicationAsset application, GameObject playerPrefab, PlayerSlotProfile first, PlayerSlotProfile second)
+        private static void ValidatePersistentScene(GameObject playerPrefab)
         {
             Scene scene = OpenSceneForValidation(PersistentScene, out bool openedForValidation);
             try
@@ -654,13 +660,13 @@ namespace Immersive.QaFramework.IfAdr043.Editor
                 LocalPlayerProvisioningAuthoring[] endpoints = roots.SelectMany(root => root.GetComponentsInChildren<LocalPlayerProvisioningAuthoring>(true)).ToArray();
                 LocalPlayerProvisioningEndpointRegistration[] registrations = roots.SelectMany(root => root.GetComponentsInChildren<LocalPlayerProvisioningEndpointRegistration>(true)).ToArray();
                 QaIfAdr043PhysicalParticipationScenario[] scenarios = roots.SelectMany(root => root.GetComponentsInChildren<QaIfAdr043PhysicalParticipationScenario>(true)).ToArray();
-                if (managers.Length != 1 || endpoints.Length != 1 || registrations.Length != 1 || scenarios.Length != 1)
-                    throw new InvalidOperationException("IF-ADR-043 setup validation failed: Persistent scene must contain exactly one Manager, Provisioning endpoint, registration and scenario.");
+                if (managers.Length != 1 || endpoints.Length != 1 || registrations.Length != 1 || scenarios.Length != 0)
+                    throw new InvalidOperationException("IF-ADR-043 setup validation failed: Persistent scene must contain one Manager-Provisioned composition and no Route-scoped scenario controller.");
 
                 PlayerInputManager manager = managers[0];
                 LocalPlayerProvisioningAuthoring endpoint = endpoints[0];
                 if (!manager.isActiveAndEnabled || !endpoint.isActiveAndEnabled || !registrations[0].isActiveAndEnabled ||
-                    !scenarios[0].isActiveAndEnabled || manager.gameObject != endpoint.gameObject || manager.maxPlayerCount != 2 ||
+                    manager.gameObject != endpoint.gameObject || manager.maxPlayerCount != 2 ||
                     manager.joinBehavior != PlayerJoinBehavior.JoinPlayersManually ||
                     manager.notificationBehavior != PlayerNotifications.InvokeCSharpEvents || manager.splitScreen ||
                     manager.playerPrefab != playerPrefab ||
@@ -668,17 +674,6 @@ namespace Immersive.QaFramework.IfAdr043.Editor
                     registrations[0].ProvisioningAuthoring != endpoint)
                     throw new InvalidOperationException("IF-ADR-043 setup validation failed: ManagerProvisioned composition must be co-located, manual, two-player and reference the same Local Player Host prefab.");
 
-                SerializedObject scenario = new SerializedObject(scenarios[0]);
-                scenario.Update();
-                var mismatchedBindings = new List<string>();
-                ValidateScenarioBinding(scenario, "gameApplication", application, mismatchedBindings);
-                ValidateScenarioBinding(scenario, "provisioning", endpoint, mismatchedBindings);
-                ValidateScenarioBinding(scenario, "provisioningRegistration", registrations[0], mismatchedBindings);
-                ValidateScenarioBinding(scenario, "outputEvidence", evidence, mismatchedBindings);
-                ValidateScenarioBinding(scenario, "player1", first, mismatchedBindings);
-                ValidateScenarioBinding(scenario, "player2", second, mismatchedBindings);
-                if (mismatchedBindings.Count > 0)
-                    throw new InvalidOperationException("IF-ADR-043 setup validation failed: persistent scenario serialized bindings differ from the generated baseline: " + string.Join(", ", mismatchedBindings) + ".");
             }
             finally
             {
@@ -708,6 +703,18 @@ namespace Immersive.QaFramework.IfAdr043.Editor
                     throw new InvalidOperationException("IF-ADR-043 setup validation failed: Route content contribution does not reference the owning baseline Route.");
                 if (!contributions[0].HasExplicitLocalContentId)
                     throw new InvalidOperationException("IF-ADR-043 setup validation failed: Route content contribution requires an explicit local content ID.");
+                PlayerSessionObserver[] observers = scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<PlayerSessionObserver>(true)).ToArray();
+                PlayerSessionJoinTrigger[] triggers = scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<PlayerSessionJoinTrigger>(true)).ToArray();
+                QaIfAdr043PhysicalParticipationScenario[] scenarios = scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<QaIfAdr043PhysicalParticipationScenario>(true)).ToArray();
+                if (observers.Length != 1 || triggers.Length != 1 || scenarios.Length != 1 ||
+                    observers[0].Scope != LocalPlayerProvisioningConsumerScope.Route || triggers[0].Scope != LocalPlayerProvisioningConsumerScope.Route ||
+                    !observers[0].isActiveAndEnabled || !triggers[0].isActiveAndEnabled || !scenarios[0].isActiveAndEnabled)
+                    throw new InvalidOperationException("IF-ADR-043 setup validation failed: Route scene requires exactly one enabled Route-scoped observer, trigger and scenario.");
+                SerializedObject serialized = new SerializedObject(scenarios[0]);
+                serialized.Update();
+                if (Require(serialized, "routeSessionObserver").objectReferenceValue != observers[0] ||
+                    Require(serialized, "joinTrigger").objectReferenceValue != triggers[0])
+                    throw new InvalidOperationException("IF-ADR-043 setup validation failed: Route scenario is not bound to its Route-scoped observer and Join trigger.");
             }
             finally
             {
