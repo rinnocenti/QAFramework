@@ -176,6 +176,18 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/QA-IF-ADR-PLAYER-SESSION/Scenes/QA_PlayerSessionJoin_Persistent.unity
     guid: 9ec3feb519f5d8846ae31d17d0178c6e
+  - enabled: 1
+    path: Assets/QA-IF-ADR-036/Generated/Scenes/QA_IF_ADR_036_Persistent.unity
+    guid: 0a5d6baeaa65ca74492a046ee3340715
+  - enabled: 1
+    path: Assets/QA-IF-ADR-036/Generated/Scenes/QA_IF_ADR_036_Route.unity
+    guid: 6e0842727c9ee43468c0d829d01bdb37
+  - enabled: 1
+    path: Assets/QA-IF-ADR-036/Generated/Scenes/QA_IF_ADR_036_ActivityB.unity
+    guid: 156d4925d7fa1954ca94fb80f7ee2d86
+  - enabled: 1
+    path: Assets/QA-IF-ADR-036/Generated/Scenes/QA_IF_ADR_036_ActivityA.unity
+    guid: 63de1705ea1a1ae4092d92b7516806ca
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
