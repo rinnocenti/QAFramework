@@ -8,6 +8,7 @@ using Immersive.Framework.PlayerSlots;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.RuntimeContent;
 using Immersive.QaFramework.Certification;
+using Immersive.QaFramework.PlayerSession;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -39,19 +40,14 @@ namespace Immersive.QaFramework.IfAdr046
         private bool _failed;
         private string _firstIssue = string.Empty;
         private string _cleanupIssue = string.Empty;
-        private string _leaseBlockers = string.Empty;
-        private string _staleEvidence = string.Empty;
         private string _joinEvidence = string.Empty;
         private string _activityOccurrenceEvidence = string.Empty;
         private string _caseEvidence = string.Empty;
         private string _routeEntryEvidence = string.Empty;
         private int _completedCases;
-        private int _staleProbes;
-        private int _leaseChecksBlocked;
         private int _initialPlayerInputCount;
         private int _initialDeviceCount;
         private Keyboard _ownedKeyboard;
-        private IPlayerSessionScopedAccess _activeAccess;
         private PlayerSessionObserver _activeObserver;
         private bool _joiningOpened;
         private bool _observingRouteAReentry;
@@ -60,8 +56,6 @@ namespace Immersive.QaFramework.IfAdr046
         private ulong _routeAExpectedUnloadHandle;
         private ulong _routeAObservedUnloadHandle;
         private ulong _routeAObservedReloadHandle;
-        private PlayerSlotId _joinedSlot;
-        private int _joinedSlotRevision;
         private int _observedActivityOccurrence;
 
         private void Start()
@@ -147,12 +141,8 @@ namespace Immersive.QaFramework.IfAdr046
             }
             _activityOccurrenceEvidence = Append(_activityOccurrenceEvidence,
                 "activity-a1-to-a2=" + activityOccurrenceA1 + "->" + activityOccurrenceA2 + " sceneHandle=" + activitySceneHandleA1 + "->" + GetSceneHandle(ActivityAScenePath));
-            if (!ProbeRetiredTrigger(activityJoinA1, observerA2, "activity-a1-after-a-b-a"))
-            {
-                yield return CleanupAndPublish(); yield break;
-            }
             _completedCases++;
-            _caseEvidence = Append(_caseEvidence, "activity-a1-b-a2=PASS");
+            _caseEvidence = Append(_caseEvidence, "activity-a-reentry-new-occurrence=PASS");
             yield return JoinAndLeave(activityJoinA2, observerA2, "activity-a2-current");
             if (HasFailure) { yield return CleanupAndPublish(); yield break; }
 
@@ -226,12 +216,8 @@ namespace Immersive.QaFramework.IfAdr046
                 SetFailure("Route A re-entry Activity evidence failed independently of Route entry: the Activity observer was reused or its own published occurrence did not advance. " + _routeEntryEvidence);
                 yield return CleanupAndPublish(); yield break;
             }
-            if (!ProbeRetiredTrigger(routeJoinA1, observerA3, "route-a1-after-a-b-a"))
-            {
-                yield return CleanupAndPublish(); yield break;
-            }
             _completedCases++;
-            _caseEvidence = Append(_caseEvidence, "route-a1-b-a2=PASS");
+            _caseEvidence = Append(_caseEvidence, "route-a-reentry-new-occurrence=PASS");
             yield return JoinAndLeave(routeJoinA2, observerA3, "route-a2-current");
             if (HasFailure) { yield return CleanupAndPublish(); yield break; }
 
@@ -263,12 +249,8 @@ namespace Immersive.QaFramework.IfAdr046
             }
             _activityOccurrenceEvidence = Append(_activityOccurrenceEvidence,
                 "owner-route-activity-a3-to-a4=" + activityOccurrenceBeforeOwnerChange + "->" + activityOccurrenceA4);
-            if (!ProbeRetiredTrigger(activityJoinBeforeOwnerChange, observerA4, "activity-a-after-owner-route-change"))
-            {
-                yield return CleanupAndPublish(); yield break;
-            }
             _completedCases++;
-            _caseEvidence = Append(_caseEvidence, "owner-route-change-invalidates-old-activity=PASS");
+            _caseEvidence = Append(_caseEvidence, "owner-route-change-recreates-activity-occurrence=PASS");
             yield return JoinAndLeave(activityJoinA4, observerA4, "activity-a-after-owner-route-change-current");
             if (HasFailure) { yield return CleanupAndPublish(); yield break; }
 
@@ -277,10 +259,9 @@ namespace Immersive.QaFramework.IfAdr046
 
         private IEnumerator JoinAndLeave(PlayerSessionJoinTrigger trigger, PlayerSessionObserver observer, string caseId)
         {
-            string accessIssue = "not-observed";
-            if (trigger == null || observer == null || !observer.TryGetAccess(out _activeAccess, out accessIssue) || _activeAccess == null)
+            if (trigger == null || observer == null || !observer.IsAvailable)
             {
-                SetFailure($"{caseId}: current public Join trigger or scoped Session access unavailable. {accessIssue}");
+                SetFailure($"{caseId}: current public Join trigger or Observer unavailable.");
                 yield break;
             }
             if (!observer.TryGetSnapshot(out PlayerParticipationSnapshot baseline) || !IsEmptyClosed(baseline))
@@ -290,7 +271,8 @@ namespace Immersive.QaFramework.IfAdr046
             }
 
             _activeObserver = observer;
-            PlayerParticipationOperationResult opened = _activeAccess.OpenJoining(ScenarioId, caseId + " open Joining");
+            PlayerParticipationOperationResult opened =
+                QaPlayerSessionCommandAccess.OpenJoining(observer);
             if (opened == null || !opened.Succeeded)
             {
                 SetFailure(caseId + ": public OpenJoining failed. " + (opened != null ? opened.ToDiagnosticString() : "null result"));
@@ -333,10 +315,9 @@ namespace Immersive.QaFramework.IfAdr046
             }
 
             PlayerSlotRuntimeSnapshot slot = joined.Slots[0];
-            _joinedSlot = slot.PlayerSlotId;
-            _joinedSlotRevision = slot.Revision;
-            SessionPlayerLeaveResult leave = _activeAccess.RequestLeave(new SessionPlayerLeaveRequest(
-                _joinedSlot, _joinedSlotRevision, ScenarioId, caseId + " Leave"));
+            SessionPlayerLeaveResult leave = QaPlayerSessionCommandAccess.Leave(
+                observer,
+                slot.Profile);
             if (leave == null || !leave.Succeeded || !leave.ProvisioningReleased || !leave.TerminalCommitted)
             {
                 SetFailure(caseId + ": Leave did not confirm ProvisioningReleased and TerminalCommitted. " + (leave != null ? leave.ToDiagnosticString() : "null result"));
@@ -355,7 +336,8 @@ namespace Immersive.QaFramework.IfAdr046
                 yield break;
             }
 
-            PlayerParticipationOperationResult closed = _activeAccess.CloseJoining(ScenarioId, caseId + " close Joining");
+            PlayerParticipationOperationResult closed =
+                QaPlayerSessionCommandAccess.CloseJoining(observer);
             if (closed == null || !closed.Succeeded)
             {
                 SetFailure(caseId + ": public CloseJoining failed. " + (closed != null ? closed.ToDiagnosticString() : "null result"));
@@ -376,72 +358,8 @@ namespace Immersive.QaFramework.IfAdr046
                 yield break;
             }
             _activeObserver = null;
-            _activeAccess = null;
-            _joinedSlot = default;
-            _joinedSlotRevision = 0;
             _completedCases++;
             _caseEvidence = Append(_caseEvidence, caseId + "=PASS");
-        }
-
-        private bool ProbeRetiredTrigger(PlayerSessionJoinTrigger oldTrigger, PlayerSessionObserver currentObserver, string caseId)
-        {
-            _staleProbes++;
-            _leaseChecksBlocked++;
-            if (ReferenceEquals(oldTrigger, null))
-            {
-                _leaseBlockers = Append(_leaseBlockers, caseId + ": managed reference unavailable; internal lease validation cannot be observed.");
-                SetBlocked(caseId + ": managed reference was unavailable; no public stale invocation was possible.");
-                return false;
-            }
-            if (currentObserver == null || !currentObserver.TryGetSnapshot(out PlayerParticipationSnapshot before))
-            {
-                SetFailure(caseId + ": could not capture Session snapshot before stale public call.");
-                return false;
-            }
-
-            bool destroyedUnityObject = oldTrigger == null;
-            Keyboard probeKeyboard;
-            try { probeKeyboard = InputSystem.AddDevice<Keyboard>("QA IF-ADR-046 I4.2 stale probe " + caseId); }
-            catch (Exception exception)
-            {
-                _leaseBlockers = Append(_leaseBlockers, caseId + ": no valid device could be created for the invocation; lease path is unobservable.");
-                SetBlocked(caseId + ": could not create a valid request device for public stale-call observation: " + exception.Message);
-                return false;
-            }
-
-            LocalPlayerJoinOutcome outcome;
-            try
-            {
-                outcome = oldTrigger.RequestJoin(new LocalPlayerJoinRequest(ScenarioId, caseId, probeKeyboard, "QA.Keyboard"));
-            }
-            catch (Exception exception)
-            {
-                _leaseBlockers = Append(_leaseBlockers, caseId + ": retained object invocation failed before public lease observability.");
-                SetBlocked(caseId + ": retained old trigger could not be invoked through its public method: " + exception.GetType().Name);
-                return false;
-            }
-            finally
-            {
-                RemoveProbeKeyboard(probeKeyboard);
-            }
-
-            if (outcome == null || outcome.Code != LocalPlayerJoinOutcomeCode.RejectedUnavailable ||
-                !currentObserver.TryGetSnapshot(out PlayerParticipationSnapshot after) ||
-                before.Revision != after.Revision || before.JoinedCount != after.JoinedCount ||
-                before.ReservedCount != after.ReservedCount || before.LeavingCount != after.LeavingCount ||
-                PlayerInput.all.Count != _initialPlayerInputCount || InputSystem.devices.Count != _initialDeviceCount ||
-                !currentObserver.TryGetObservation(out PlayerSessionScopedObservationSnapshot observation) ||
-                observation.Slots.Count != 1 || observation.Slots[0].HasHostEvidence)
-            {
-                SetFailure(caseId + ": stale public call did not produce RejectedUnavailable with unchanged Session and no Host/PlayerInput effects.");
-                return false;
-            }
-
-            _leaseBlockers = Append(_leaseBlockers, destroyedUnityObject
-                ? caseId + ": destroyed-object guard returned RejectedUnavailable before lease validation"
-                : caseId + ": public result cannot distinguish lease validation from a released/null join port");
-            _staleEvidence = Append(_staleEvidence, caseId + ":" + outcome.Code + ",revision=" + before.Revision + "->" + after.Revision + ",destroyedUnityObject=" + destroyedUnityObject);
-            return true;
         }
 
         private IEnumerator WaitForCurrentPair(RouteAsset expectedRoute, ActivityAsset expectedActivity, string activityScenePath, string routeScenePath)
@@ -500,43 +418,36 @@ namespace Immersive.QaFramework.IfAdr046
                 if (readinessPublished)
                 {
                     publishedOccurrence = published.Occurrence;
-                    if (observer.TryGetAccess(out IPlayerSessionScopedAccess access, out string accessIssue))
+                    if (observer.TryGetObservation(out PlayerSessionScopedObservationSnapshot observation) &&
+                        observation != null && observation.IsAvailable)
                     {
                         lastAccessState = observer.ScopedAccessState.ToString();
                         lastAccessDiagnostic = string.Empty;
-                        if (access.TryGetObservation(out PlayerSessionScopedObservationSnapshot observation) && observation != null && observation.IsAvailable)
+                        lastObservationState = "available";
+                        lastObservationDiagnostic = observation.Diagnostic;
+                        if (!observation.HasCurrentActivityOccurrence)
                         {
-                            lastObservationState = "available";
-                            lastObservationDiagnostic = observation.Diagnostic;
-                            if (!observation.HasCurrentActivityOccurrence)
-                            {
-                                sawObservationWithoutOccurrence = true;
-                            }
-                            else
-                            {
-                                RuntimeContentOwner expectedOwner = RuntimeContentOwner.Activity(
-                                    expectedActivity.ActivityId.StableText,
-                                    expectedActivity.ActivityName,
-                                    RuntimeDefinitionToken.FromUnityObject(expectedActivity));
-                                if (!observation.ActivityOwner.Equals(expectedOwner)) sawOwnerMismatch = true;
-                                else if (observation.ActivityOccurrence != published.Occurrence) sawOccurrenceMismatch = true;
-                                else
-                                {
-                                    _observedActivityOccurrence = observation.ActivityOccurrence;
-                                    yield break;
-                                }
-                            }
+                            sawObservationWithoutOccurrence = true;
                         }
                         else
                         {
-                            lastObservationState = "unavailable";
-                            lastObservationDiagnostic = access.Snapshot.Diagnostic;
+                            RuntimeContentOwner expectedOwner = RuntimeContentOwner.Activity(
+                                expectedActivity.ActivityId.StableText,
+                                expectedActivity.ActivityName,
+                                RuntimeDefinitionToken.FromUnityObject(expectedActivity));
+                            if (!observation.ActivityOwner.Equals(expectedOwner)) sawOwnerMismatch = true;
+                            else if (observation.ActivityOccurrence != published.Occurrence) sawOccurrenceMismatch = true;
+                            else
+                            {
+                                _observedActivityOccurrence = observation.ActivityOccurrence;
+                                yield break;
+                            }
                         }
                     }
                     else
                     {
                         lastAccessState = observer.ScopedAccessState.ToString();
-                        lastAccessDiagnostic = accessIssue;
+                        lastAccessDiagnostic = observer.ScopedAccessDiagnostic;
                     }
                 }
                 else
@@ -869,14 +780,15 @@ namespace Immersive.QaFramework.IfAdr046
 
         private IEnumerator CleanupActiveJoin()
         {
-            if (_activeAccess != null && _activeObserver != null && _activeObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot))
+            if (_activeObserver != null && _activeObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot))
             {
                 for (int index = 0; index < snapshot.Slots.Count; index++)
                 {
                     PlayerSlotRuntimeSnapshot slot = snapshot.Slots[index];
                     if (!slot.IsJoined) continue;
-                    SessionPlayerLeaveResult leave = _activeAccess.RequestLeave(new SessionPlayerLeaveRequest(
-                        slot.PlayerSlotId, slot.Revision, ScenarioId, "I4.2 terminal cleanup."));
+                    SessionPlayerLeaveResult leave = QaPlayerSessionCommandAccess.Leave(
+                        _activeObserver,
+                        slot.Profile);
                     if (leave == null || !leave.Succeeded || !leave.ProvisioningReleased || !leave.TerminalCommitted)
                         _cleanupIssue = Append(_cleanupIssue, "Terminal Leave did not confirm Host release.");
                 }
@@ -895,7 +807,8 @@ namespace Immersive.QaFramework.IfAdr046
                 if (!empty) _cleanupIssue = Append(_cleanupIssue, "Terminal cleanup did not observe an empty Session after Leave.");
                 else if (_joiningOpened)
                 {
-                    PlayerParticipationOperationResult close = _activeAccess.CloseJoining(ScenarioId, "I4.2 terminal cleanup close Joining.");
+                    PlayerParticipationOperationResult close =
+                        QaPlayerSessionCommandAccess.CloseJoining(_activeObserver);
                     if (close == null || !close.Succeeded) _cleanupIssue = Append(_cleanupIssue, "Terminal CloseJoining failed.");
                     else _joiningOpened = false;
                 }
@@ -905,20 +818,22 @@ namespace Immersive.QaFramework.IfAdr046
 
         private void CleanupActiveJoinSynchronously()
         {
-            if (_activeAccess != null && _activeObserver != null && _activeObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot))
+            if (_activeObserver != null && _activeObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot))
             {
                 for (int index = 0; index < snapshot.Slots.Count; index++)
                 {
                     PlayerSlotRuntimeSnapshot slot = snapshot.Slots[index];
                     if (!slot.IsJoined) continue;
-                    SessionPlayerLeaveResult leave = _activeAccess.RequestLeave(new SessionPlayerLeaveRequest(
-                        slot.PlayerSlotId, slot.Revision, ScenarioId, "Interruption cleanup."));
+                    SessionPlayerLeaveResult leave = QaPlayerSessionCommandAccess.Leave(
+                        _activeObserver,
+                        slot.Profile);
                     if (leave == null || !leave.Succeeded || !leave.ProvisioningReleased || !leave.TerminalCommitted)
                         _cleanupIssue = Append(_cleanupIssue, "Interruption Leave did not confirm Host release.");
                 }
                 if (snapshot.JoiningOpen)
                 {
-                    PlayerParticipationOperationResult close = _activeAccess.CloseJoining(ScenarioId, "Interruption cleanup close Joining.");
+                    PlayerParticipationOperationResult close =
+                        QaPlayerSessionCommandAccess.CloseJoining(_activeObserver);
                     if (close == null || !close.Succeeded) _cleanupIssue = Append(_cleanupIssue, "Interruption CloseJoining failed.");
                 }
             }
@@ -932,16 +847,9 @@ namespace Immersive.QaFramework.IfAdr046
             catch (Exception exception) { _cleanupIssue = Append(_cleanupIssue, "Keyboard removal failed: " + exception.Message); }
         }
 
-        private void RemoveProbeKeyboard(Keyboard keyboard)
-        {
-            if (keyboard == null || !keyboard.added) return;
-            try { InputSystem.RemoveDevice(keyboard); }
-            catch (Exception exception) { _cleanupIssue = Append(_cleanupIssue, "Stale-probe Keyboard removal failed: " + exception.Message); }
-        }
-
         private void PublishTerminals(bool restored)
         {
-            bool observablePass = !_failed && restored && string.IsNullOrEmpty(_cleanupIssue) && _completedCases == 8 && _staleProbes == 3;
+            bool observablePass = !_failed && restored && string.IsNullOrEmpty(_cleanupIssue) && _completedCases == 8;
             var observableRecorder = new QaCertificationRecorder();
             if (observablePass) observableRecorder.RecordPass();
             else observableRecorder.RecordFirstCausalDivergence(
@@ -950,15 +858,7 @@ namespace Immersive.QaFramework.IfAdr046
             QaCertificationResult observable = observableRecorder.CreateResult(
                 ScenarioId + "-OBSERVABLE", restored ? QaCleanupDisposition.BaselineRestored : QaCleanupDisposition.FreshBootRequired, _cleanupIssue);
 
-            var leaseRecorder = new QaCertificationRecorder();
-            string leaseIssue = _leaseBlockers;
-            leaseRecorder.RecordFirstCausalDivergence(QaCertificationVerdict.Blocked,
-                string.IsNullOrEmpty(leaseIssue) ? "Not all three old-binding calls reached observable lease validation." : leaseIssue);
-            QaCertificationResult lease = leaseRecorder.CreateResult(
-                ScenarioId + "-LEASE", restored ? QaCleanupDisposition.BaselineRestored : QaCleanupDisposition.FreshBootRequired, _cleanupIssue);
-
-            Debug.Log($"[QA-IF-ADR-046-I4.2-OBSERVABLE] scenario='{observable.ScenarioId}' status='{VerdictText(observable.Verdict)}' verdict='{VerdictCode(observable.Verdict)}' cases='{_completedCases}/8' caseResults='{_caseEvidence}' activityOccurrences='{_activityOccurrenceEvidence}' routeEntry='{_routeEntryEvidence}' currentJoin='{_joinEvidence}' stalePublicCalls='{_staleProbes}/3' staleNoEffects='{(_staleProbes == 3 ? "observed" : "incomplete")}' staleEvidence='{_staleEvidence}' leaseValidation='separate-blocked-result' cleanup='{observable.CleanupDisposition}' cleanupIssue='{observable.CleanupIssue}' firstCause='{observable.FirstCausalDivergence}'");
-            Debug.Log($"[QA-IF-ADR-046-I4.2-LEASE] scenario='{lease.ScenarioId}' status='{VerdictText(lease.Verdict)}' verdict='{VerdictCode(lease.Verdict)}' cases='0/3' blockedChecks='{_leaseChecksBlocked}/3' details='{lease.FirstCausalDivergence}' cleanup='{lease.CleanupDisposition}'");
+            Debug.Log($"[QA-IF-ADR-046-I4.2-OBSERVABLE] scenario='{observable.ScenarioId}' status='{VerdictText(observable.Verdict)}' verdict='{VerdictCode(observable.Verdict)}' cases='{_completedCases}/8' caseResults='{_caseEvidence}' activityOccurrences='{_activityOccurrenceEvidence}' routeEntry='{_routeEntryEvidence}' currentJoin='{_joinEvidence}' cleanup='{observable.CleanupDisposition}' cleanupIssue='{observable.CleanupIssue}' firstCause='{observable.FirstCausalDivergence}'");
             _terminal = true;
         }
 

@@ -452,6 +452,22 @@ namespace Immersive.QaFramework.PlayerSession.Editor
             Set(contribution, "activity", activity); Set(contribution, "localContentId", "qa.player.multiplayer.ownership.activity.main");
             PlayerSessionObserver observer = root.AddComponent<PlayerSessionObserver>();
             SetEnum(observer, "scope", "Activity");
+            QaPlayerSessionCommandTriggerSetup.EnsureOpenJoining(
+                root,
+                LocalPlayerProvisioningConsumerScope.Activity);
+            QaPlayerSessionCommandTriggerSetup.EnsureCloseJoining(
+                root,
+                LocalPlayerProvisioningConsumerScope.Activity);
+            QaPlayerSessionCommandTriggerSetup.EnsureLeave(
+                root,
+                "Leave P1",
+                LocalPlayerProvisioningConsumerScope.Activity,
+                slotP1);
+            QaPlayerSessionCommandTriggerSetup.EnsureLeave(
+                root,
+                "Leave P2",
+                LocalPlayerProvisioningConsumerScope.Activity,
+                slotP2);
             PlayerSessionJoinTrigger join = root.AddComponent<PlayerSessionJoinTrigger>();
             SetEnum(join, "scope", "Activity");
             Set(join, "controlScheme", ControlScheme);

@@ -22,7 +22,6 @@ namespace Immersive.QaFramework.PlayerSession
         [SerializeField, Min(1)] private int frameBudget = 600;
 
         private readonly QaCertificationRecorder _recorder = new QaCertificationRecorder();
-        private IPlayerSessionScopedAccess _access;
         private Keyboard _keyboard;
         private PlayerInput _joinedInput;
         private LocalPlayerHostAuthoring _joinedHost;
@@ -86,7 +85,7 @@ namespace Immersive.QaFramework.PlayerSession
             _completed++;
 
             _stage = "open-joining";
-            PlayerParticipationOperationResult opened = _access.OpenJoining(ScenarioId, "Open Joining for explicit P1 Join.");
+            PlayerParticipationOperationResult opened = QaPlayerSessionCommandAccess.OpenJoining(sessionObserver);
             if (opened == null || !opened.Succeeded)
             {
                 RecordFail("Public OpenJoining failed from a valid baseline. " + (opened != null ? opened.ToDiagnosticString() : "null result"));
@@ -202,7 +201,7 @@ namespace Immersive.QaFramework.PlayerSession
             for (int frame = 0; frame < Mathf.Max(1, frameBudget); frame++)
             {
                 if (sessionObserver != null && joinTrigger != null && expectedSlot != null && expectedDefaultActor != null &&
-                    sessionObserver.IsAvailable && sessionObserver.TryGetAccess(out _access, out _) && _access != null &&
+                    sessionObserver.IsAvailable &&
                     sessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot) && snapshot.IsInitialized &&
                     snapshot.ConfiguredSlotCount == 1 && snapshot.Slots.Count == 1 && snapshot.Slots[0].Profile == expectedSlot &&
                     snapshot.Slots[0].AllocationState == PlayerSlotAllocationState.Available && !snapshot.JoiningOpen && snapshot.JoinedCount == 0 &&
@@ -253,14 +252,14 @@ namespace Immersive.QaFramework.PlayerSession
         private IEnumerator CleanupAndPublish()
         {
             bool leaveConfirmed = false;
-            if (_access == null && sessionObserver != null) sessionObserver.TryGetAccess(out _access, out _);
-            if (_access != null && sessionObserver != null && sessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot))
+            if (sessionObserver != null && sessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot))
             {
                 PlayerSlotRuntimeSnapshot joined = snapshot.Slots.FirstOrDefault(slot => slot.IsJoined);
                 if (joined.IsJoined)
                 {
-                    SessionPlayerLeaveResult leave = _access.RequestLeave(new SessionPlayerLeaveRequest(
-                        joined.PlayerSlotId, joined.Revision, ScenarioId, "Restore the empty Session baseline after Slice 1."));
+                    SessionPlayerLeaveResult leave = QaPlayerSessionCommandAccess.Leave(
+                        sessionObserver,
+                        joined.Profile);
                     _leaveStatus = leave != null ? leave.Status.ToString() : "null";
                     _leaveProvisioningReleased = leave != null && leave.ProvisioningReleased;
                     _leaveTerminalCommitted = leave != null && leave.TerminalCommitted;
@@ -271,12 +270,12 @@ namespace Immersive.QaFramework.PlayerSession
 
                 if (_joiningOpened || snapshot.JoiningOpen)
                 {
-                    PlayerParticipationOperationResult closed = _access.CloseJoining(ScenarioId, "Restore initially closed Joining state.");
+                    PlayerParticipationOperationResult closed = QaPlayerSessionCommandAccess.CloseJoining(sessionObserver);
                     if (closed == null || !closed.Succeeded) SetCleanupIssue("Public CloseJoining failed. " + (closed != null ? closed.ToDiagnosticString() : "null result"));
                     else _joiningOpened = false;
                 }
             }
-            else if (_joiningOpened) SetCleanupIssue("Scoped Session access ended before public cleanup.");
+            else if (_joiningOpened) SetCleanupIssue("Session Observer could not read state before command-trigger cleanup.");
 
             RemoveKeyboard();
             yield return null;
@@ -301,16 +300,16 @@ namespace Immersive.QaFramework.PlayerSession
 
         private void TrySynchronousLeave()
         {
-            if (_access == null && sessionObserver != null) sessionObserver.TryGetAccess(out _access, out _);
-            if (_access == null || sessionObserver == null || !sessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot)) return;
+            if (sessionObserver == null || !sessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot)) return;
             PlayerSlotRuntimeSnapshot joined = snapshot.Slots.FirstOrDefault(slot => slot.IsJoined);
             if (joined.IsJoined)
             {
-                SessionPlayerLeaveResult result = _access.RequestLeave(new SessionPlayerLeaveRequest(
-                    joined.PlayerSlotId, joined.Revision, ScenarioId, "Best-effort public Leave on interruption."));
+                SessionPlayerLeaveResult result = QaPlayerSessionCommandAccess.Leave(
+                    sessionObserver,
+                    joined.Profile);
                 if (result == null || !result.Succeeded) SetCleanupIssue("Interrupted scenario public Leave failed.");
             }
-            PlayerParticipationOperationResult close = _access.CloseJoining(ScenarioId, "Best-effort close on interruption.");
+            PlayerParticipationOperationResult close = QaPlayerSessionCommandAccess.CloseJoining(sessionObserver);
             if (close == null || !close.Succeeded) SetCleanupIssue("Interrupted scenario public CloseJoining failed.");
         }
 

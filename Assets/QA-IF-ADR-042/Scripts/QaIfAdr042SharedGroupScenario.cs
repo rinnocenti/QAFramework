@@ -27,7 +27,6 @@ namespace Immersive.QaFramework.IfAdr042
             "0 baseline",
             "0 -> P1",
             "P1 -> P1+P2",
-            "P1 Actor/Subject replacement",
             "P1+P2 -> P2",
             "P2 -> 0",
             "0 -> P1"
@@ -37,11 +36,9 @@ namespace Immersive.QaFramework.IfAdr042
         [SerializeField] private PlayerSessionObserver routeSessionObserver;
         [SerializeField] private PlayerSessionJoinTrigger joinTrigger;
         private PlayerSessionObserver playerSessionObserver;
-        private IPlayerSessionScopedAccess _sessionAccess;
         [SerializeField] private QaIfAdr042SharedGroupEvidence evidence;
         [SerializeField] private PlayerSlotProfile player1;
         [SerializeField] private PlayerSlotProfile player2;
-        [SerializeField] private ActorProfile player1Replacement;
         [SerializeField] private SessionCameraAssignmentAsset assignment;
         [SerializeField, Min(1)] private int frameBudget = 180;
 
@@ -56,19 +53,13 @@ namespace Immersive.QaFramework.IfAdr042
         private CameraOutputId _outputId;
         private SessionCameraAssignmentId _assignmentId;
         private CameraOccurrenceIdentity _occurrenceId;
-        private ActorProfile _player1DefaultProfile;
-        private ActorId _player1ReplacementActorId;
-        private Transform _player1ReplacementSubject;
         private bool _joiningWasOpened;
-        private bool _replacementApplied;
-        private bool _selectionRestored;
         private bool _started;
         private bool _terminal;
         private bool _waitSucceeded;
         private string _waitIssue = string.Empty;
         private string _firstIssue = string.Empty;
         private string _cleanupIssue = string.Empty;
-        private string _restoreIssue = string.Empty;
         private int _completedCases;
         private QaCleanupDisposition _cleanup = QaCleanupDisposition.FreshBootRequired;
 
@@ -96,13 +87,11 @@ namespace Immersive.QaFramework.IfAdr042
                 yield break;
             }
 
-            yield return WaitUntil(() => TryResolveActivityObserver(out _) &&
-                playerSessionObserver.IsAvailable && TryResolveScopedAccess(out _) && evidence.Outputs.Count == 1 &&
-                evidence.Occurrences.Count == 1 && evidence.Outputs[0] != null &&
-                evidence.Outputs[0].IsReady && evidence.Occurrences[0] != null &&
-                evidence.Occurrences[0].Composer != null &&
-                evidence.Occurrences[0].Composer.FrameworkOwnedGroupTargetGroup != null,
-                "Framework did not expose the Route Player Session access, one initialized Output, and one materialized SharedGroup occurrence.");
+            string readinessIssue = string.Empty;
+            yield return WaitUntil(
+                () => TryResolveStartupReadiness(out readinessIssue),
+                "Framework did not expose the Route Player Session access, one initialized Output, and one materialized SharedGroup occurrence.",
+                () => readinessIssue);
             if (!_waitSucceeded)
             {
                 RecordBlocked(_waitIssue);
@@ -143,8 +132,8 @@ namespace Immersive.QaFramework.IfAdr042
             }
             _completedCases++;
 
-            PlayerParticipationOperationResult opening = _sessionAccess.OpenJoining(
-                ScenarioId, "Open deterministic QA joining before public ManagerProvisioned joins.");
+            PlayerParticipationOperationResult opening =
+                QaPlayerSessionCommandAccess.OpenJoining(routeSessionObserver);
             if (opening == null || !opening.Succeeded)
             {
                 RecordFail("Public OpenJoining failed before the first Join. result='" + opening?.ToDiagnosticString() + "'.");
@@ -159,18 +148,6 @@ namespace Immersive.QaFramework.IfAdr042
             yield return JoinAndVerify(player2, _player2Device, "P1 -> P1+P2",
                 new[] { player1.PlayerSlotId, player2.PlayerSlotId });
             if (HasDivergence) { yield return CleanupAndPublish(); yield break; }
-
-            yield return ReplacePlayer1ActorAndVerify();
-            if (HasDivergence) { yield return CleanupAndPublish(); yield break; }
-
-            yield return RestorePlayer1ActorAndVerify(
-                "P1 original Actor/Subject restoration");
-            if (!_selectionRestored)
-            {
-                RecordFail("P1 original Actor/Subject could not be restored while P1 was Joined. " + _restoreIssue);
-                yield return CleanupAndPublish();
-                yield break;
-            }
 
             yield return LeaveAndVerify(player1, "P1+P2 -> P2", new[] { player2.PlayerSlotId });
             if (HasDivergence) { yield return CleanupAndPublish(); yield break; }
@@ -188,10 +165,9 @@ namespace Immersive.QaFramework.IfAdr042
         {
             issue = string.Empty;
             if (gameApplication == null || routeSessionObserver == null || joinTrigger == null ||
-                evidence == null || player1 == null || player2 == null ||
-                player1Replacement == null || assignment == null)
+                evidence == null || player1 == null || player2 == null || assignment == null)
             {
-                issue = "Game Application, Route-scoped Observer and Join trigger, evidence, two Slots, replacement Actor Profile, and Assignment are required.";
+                issue = "Game Application, Route-scoped Observer and Join trigger, evidence, two Slots, and Assignment are required.";
                 return false;
             }
 
@@ -236,20 +212,16 @@ namespace Immersive.QaFramework.IfAdr042
                 return false;
             }
 
-            if (!player1.DefaultActorProfile || !player2.DefaultActorProfile ||
-                !player1Replacement.TryGetActorProfileId(out _, out issue) ||
-                player1Replacement.ActorKind != ActorKind.Player ||
-                player1Replacement.ActorRole != ActorRole.Protagonist ||
-                player1Replacement == player1.DefaultActorProfile)
+            if (!player1.DefaultActorProfile || !player2.DefaultActorProfile)
             {
-                issue = "P1/P2 default profiles and a distinct valid replacement Player Actor Profile are required. " + issue;
+                issue = "P1/P2 default Actor Profiles are required.";
                 return false;
             }
 
             return true;
         }
 
-        private bool TryResolveScopedAccess(out string issue)
+        private bool TryResolveRouteCommands(out string issue)
         {
             issue = string.Empty;
             if (routeSessionObserver == null || joinTrigger == null ||
@@ -259,10 +231,130 @@ namespace Immersive.QaFramework.IfAdr042
                 issue = "The Route scene must own one explicit Route-scoped Observer and Join trigger.";
                 return false;
             }
-            if (!routeSessionObserver.TryGetAccess(out _sessionAccess, out issue) || _sessionAccess == null)
+            PlayerSessionOpenJoiningCommandTrigger[] opens =
+                routeSessionObserver.GetComponentsInChildren<PlayerSessionOpenJoiningCommandTrigger>(true);
+            PlayerSessionCloseJoiningCommandTrigger[] closes =
+                routeSessionObserver.GetComponentsInChildren<PlayerSessionCloseJoiningCommandTrigger>(true);
+            PlayerSessionLeaveCommandTrigger[] leaves =
+                routeSessionObserver.GetComponentsInChildren<PlayerSessionLeaveCommandTrigger>(true);
+            if (!routeSessionObserver.IsAvailable)
             {
+                issue = "Route-scoped Player Session Observer is unavailable. " + routeSessionObserver.Diagnostic;
                 return false;
             }
+            if (opens.Length != 1 || opens[0] == null)
+            {
+                issue = "Route requires exactly one Open Joining command; found " + opens.Length + ".";
+                return false;
+            }
+            if (!opens[0].isActiveAndEnabled || !opens[0].IsScopedAccessAvailable)
+            {
+                issue = "Route Open Joining command is disabled or unbound. " + opens[0].ScopeBindingDiagnostic;
+                return false;
+            }
+            if (!opens[0].TryValidateConfiguration(out issue))
+            {
+                issue = "Route Open Joining command configuration is invalid. " + issue;
+                return false;
+            }
+            if (closes.Length != 1 || closes[0] == null)
+            {
+                issue = "Route requires exactly one Close Joining command; found " + closes.Length + ".";
+                return false;
+            }
+            if (!closes[0].isActiveAndEnabled || !closes[0].IsScopedAccessAvailable)
+            {
+                issue = "Route Close Joining command is disabled or unbound. " + closes[0].ScopeBindingDiagnostic;
+                return false;
+            }
+            if (!closes[0].TryValidateConfiguration(out issue))
+            {
+                issue = "Route Close Joining command configuration is invalid. " + issue;
+                return false;
+            }
+            if (leaves.Length != 2)
+            {
+                issue = "Route requires exactly two Leave commands, one per Player Slot; found " + leaves.Length + ".";
+                return false;
+            }
+            foreach (PlayerSessionLeaveCommandTrigger leave in leaves)
+            {
+                if (leave == null)
+                {
+                    issue = "Route contains a missing Leave command component.";
+                    return false;
+                }
+                if (!leave.isActiveAndEnabled || !leave.IsScopedAccessAvailable)
+                {
+                    issue = "Route Leave command is disabled or unbound. " + leave.ScopeBindingDiagnostic;
+                    return false;
+                }
+                if (!leave.TryValidateConfiguration(out issue))
+                {
+                    issue = "Route Leave command configuration is invalid. " + issue;
+                    return false;
+                }
+            }
+            if (leaves.Count(candidate => candidate.PlayerSlot == player1) != 1)
+            {
+                issue = "Route requires exactly one Leave targeting Player Slot P1; " +
+                    "check the serialized playerSlot reference on 'Leave Player 1'.";
+                return false;
+            }
+            if (leaves.Count(candidate => candidate.PlayerSlot == player2) != 1)
+            {
+                issue = "Route requires exactly one Leave targeting Player Slot P2; " +
+                    "check the serialized playerSlot reference on 'Leave Player 2'.";
+                return false;
+            }
+            if (joinTrigger == null || !joinTrigger.isActiveAndEnabled ||
+                joinTrigger.Scope != LocalPlayerProvisioningConsumerScope.Route)
+            {
+                issue = "Route Player Session Join trigger is missing, disabled, or has an invalid scope.";
+                return false;
+            }
+            return true;
+        }
+
+        private bool TryResolveStartupReadiness(out string issue)
+        {
+            if (!TryResolveActivityObserver(out issue)) return false;
+            if (playerSessionObserver == null || !playerSessionObserver.IsAvailable)
+            {
+                issue = "Activity-scoped Player Session observation is unavailable. " +
+                    (playerSessionObserver != null ? playerSessionObserver.Diagnostic : "Observer not found.");
+                return false;
+            }
+            if (!TryResolveRouteCommands(out issue)) return false;
+            if (evidence == null)
+            {
+                issue = "SharedGroup evidence asset is missing.";
+                return false;
+            }
+            if (evidence.Outputs.Count != 1)
+            {
+                issue = "Expected exactly one initialized Camera Output; evidence contains " + evidence.Outputs.Count +
+                    " Output reference(s). " + evidence.Diagnostic;
+                return false;
+            }
+            if (evidence.Outputs[0] == null || !evidence.Outputs[0].IsReady)
+            {
+                issue = "The authored Camera Output has not initialized. " + evidence.Diagnostic;
+                return false;
+            }
+            if (evidence.Occurrences.Count != 1)
+            {
+                issue = "Expected exactly one materialized SharedGroup occurrence; evidence contains " +
+                    evidence.Occurrences.Count + " occurrence reference(s). " + evidence.Diagnostic;
+                return false;
+            }
+            if (evidence.Occurrences[0] == null || evidence.Occurrences[0].Composer == null ||
+                evidence.Occurrences[0].Composer.FrameworkOwnedGroupTargetGroup == null)
+            {
+                issue = "The SharedGroup occurrence has no materialized Composer/TargetGroup. " + evidence.Diagnostic;
+                return false;
+            }
+            issue = string.Empty;
             return true;
         }
 
@@ -282,23 +374,62 @@ namespace Immersive.QaFramework.IfAdr042
             string[] paths = activity.ActivityContentProfile.Scenes
                 .Select(entry => entry.ScenePath)
                 .Where(path => !string.IsNullOrWhiteSpace(path))
+                .Distinct(StringComparer.Ordinal)
                 .ToArray();
-            PlayerSessionObserver[] candidates = UnityEngine.Object.FindObjectsByType<PlayerSessionObserver>(
-                    FindObjectsInactive.Exclude, FindObjectsSortMode.None)
-                .Where(observer => observer != null && observer.isActiveAndEnabled &&
-                    observer.Scope == LocalPlayerProvisioningConsumerScope.Activity &&
-                    paths.Contains(observer.gameObject.scene.path) &&
-                    observer.gameObject.scene.IsValid() && observer.gameObject.scene.isLoaded)
-                .ToArray();
-            if (candidates.Length != 1)
+            if (paths.Length == 0)
             {
-                issue = "Expected one enabled Activity-scoped PlayerSessionObserver for Actor evidence; found '" +
-                    candidates.Length + "'.";
+                issue = "The startup Activity has no saved content-scene paths for its Actor observer.";
                 playerSessionObserver = null;
                 return false;
             }
 
-            playerSessionObserver = candidates[0];
+            var candidates = new List<PlayerSessionObserver>();
+            var sceneStates = new List<string>(paths.Length);
+            foreach (string path in paths)
+            {
+                Scene scene = SceneManager.GetSceneByPath(path);
+                if (!scene.IsValid() || !scene.isLoaded)
+                {
+                    sceneStates.Add(path + "=not-loaded");
+                    continue;
+                }
+
+                sceneStates.Add(path + "=loaded");
+                foreach (GameObject root in scene.GetRootGameObjects())
+                {
+                    candidates.AddRange(root.GetComponentsInChildren<PlayerSessionObserver>(true));
+                }
+            }
+
+            if (candidates.Count != 1)
+            {
+                string observed = string.Join(", ", candidates
+                    .Where(observer => observer != null)
+                    .Select(observer => observer.gameObject.name +
+                        "(scope=" + observer.Scope +
+                        ", enabled=" + observer.isActiveAndEnabled +
+                        ", scene=" + observer.gameObject.scene.path + ")"));
+                issue = "Expected exactly one PlayerSessionObserver in the startup Activity's declared loaded content scenes; found '" +
+                    candidates.Count + "'. scenes='" + string.Join(",", sceneStates) +
+                    "' observers='" + (string.IsNullOrWhiteSpace(observed) ? "<none>" : observed) + "'.";
+                playerSessionObserver = null;
+                return false;
+            }
+
+            PlayerSessionObserver candidate = candidates[0];
+            if (candidate == null || !candidate.isActiveAndEnabled ||
+                candidate.Scope != LocalPlayerProvisioningConsumerScope.Activity)
+            {
+                issue = "The sole PlayerSessionObserver in the startup Activity's declared content scenes must be enabled and Activity-scoped; " +
+                    (candidate != null
+                        ? "observed scope='" + candidate.Scope + "' enabled='" + candidate.isActiveAndEnabled +
+                            "' scene='" + candidate.gameObject.scene.path + "'."
+                        : "the scene returned a missing component.");
+                playerSessionObserver = null;
+                return false;
+            }
+
+            playerSessionObserver = candidate;
             return true;
         }
 
@@ -351,7 +482,6 @@ namespace Immersive.QaFramework.IfAdr042
             _outputId = _output.OutputId;
             _assignmentId = state.ActiveAssignmentId;
             _occurrenceId = state.RetainedNormalOccurrence;
-            _player1DefaultProfile = player1.DefaultActorProfile;
             return true;
         }
 
@@ -435,8 +565,9 @@ namespace Immersive.QaFramework.IfAdr042
                 yield break;
             }
 
-            SessionPlayerLeaveResult result = _sessionAccess.RequestLeave(
-                new SessionPlayerLeaveRequest(slotId, slot.Revision, ScenarioId, stage));
+            SessionPlayerLeaveResult result = QaPlayerSessionCommandAccess.Leave(
+                routeSessionObserver,
+                profile);
             if (result == null || !result.Succeeded)
             {
                 RecordFail($"{stage}: public Leave failed. result='{result?.ToDiagnosticString()}'.");
@@ -449,183 +580,6 @@ namespace Immersive.QaFramework.IfAdr042
             yield return WaitForStage(stage, expectedJoined);
             if (!_waitSucceeded) RecordFail(_waitIssue);
             else _completedCases++;
-        }
-
-        private IEnumerator ReplacePlayer1ActorAndVerify()
-        {
-            PlayerSlotId slotId = player1.PlayerSlotId;
-            if (!playerSessionObserver.TryGetAccess(
-                    out IPlayerSessionScopedAccess access, out string accessIssue) ||
-                !access.TryGetObservation(out PlayerSessionScopedObservationSnapshot observation))
-            {
-                RecordBlocked("Activity scoped Player Session access could not be acquired for public prepared Actor replacement. " + accessIssue);
-                yield break;
-            }
-
-            string subjectIssue = string.Empty;
-            if (!TryGetObservedSlot(observation, slotId,
-                    out PlayerSessionScopedSlotObservation slotObservation) ||
-                !slotObservation.IsPhysicallyMaterialized ||
-                !slotObservation.CurrentActor.HasCurrentActor ||
-                slotObservation.CurrentActor.ActorEvidence.ActorProfileId != _player1DefaultProfile.ActorProfileId ||
-                !_hosts.TryGetValue(slotId, out LocalPlayerHostAuthoring host) || host == null ||
-                !TryResolveSubject(host, out Transform previousObservation, out _, out subjectIssue))
-            {
-                RecordFail("P1 has no current public Actor/Subject evidence before replacement. " + subjectIssue);
-                yield break;
-            }
-
-            ActorId previousActorId = slotObservation.CurrentActor.ActorEvidence.ActorId;
-            var request = new PlayerPreparedActorReplacementRequest(
-                slotId,
-                player1Replacement,
-                ScenarioId,
-                "Replace P1's prepared Actor while preserving the SharedGroup occurrence.",
-                slotObservation.Slot.SelectionRevision,
-                observation.Participation.Revision);
-            PlayerPreparedActorReplacementResult result = access.RequestReplacePreparedActor(request);
-            _replacementApplied = result != null && result.ReplacementCommitted;
-            if (result == null || !result.ReplacementCommitted || result.CleanupPending ||
-                !result.CurrentActor.HasActorEvidence || result.CurrentActor.ActorEvidence.ActorId == previousActorId ||
-                result.CurrentActor.ActorEvidence.ActorProfileId != player1Replacement.ActorProfileId)
-            {
-                RecordFail($"Public prepared Actor replacement did not commit a distinct current Actor. status='{result?.Status}' cleanupPending='{result?.CleanupPending}' message='{result?.Message}'.");
-                yield break;
-            }
-
-            _player1ReplacementActorId = result.CurrentActor.ActorEvidence.ActorId;
-            yield return WaitForStage("P1 Actor/Subject replacement", new[]
-                { player1.PlayerSlotId, player2.PlayerSlotId }, previousObservation);
-            if (!_waitSucceeded)
-            {
-                RecordFail(_waitIssue);
-                yield break;
-            }
-
-            if (!_hosts.TryGetValue(player1.PlayerSlotId,
-                    out LocalPlayerHostAuthoring currentHost) || currentHost == null ||
-                !TryResolveSubject(currentHost, out _player1ReplacementSubject,
-                    out _, out subjectIssue))
-            {
-                RecordFail("P1 replacement Subject could not be resolved after SharedGroup reconciliation. " + subjectIssue);
-                yield break;
-            }
-
-            _completedCases++;
-        }
-
-        private IEnumerator RestorePlayer1ActorAndVerify(string stage)
-        {
-            _restoreIssue = string.Empty;
-            if (!_replacementApplied)
-            {
-                _selectionRestored = true;
-                yield break;
-            }
-
-            if (!playerSessionObserver.TryGetAccess(
-                    out IPlayerSessionScopedAccess access,
-                    out _restoreIssue) ||
-                !access.TryGetObservation(
-                    out PlayerSessionScopedObservationSnapshot observation))
-            {
-                if (string.IsNullOrEmpty(_restoreIssue))
-                    _restoreIssue = "Activity-scoped Player Session observation is unavailable.";
-                yield break;
-            }
-
-            if (!TryGetObservedSlot(observation, player1.PlayerSlotId,
-                    out PlayerSessionScopedSlotObservation slot) || !slot.IsJoined)
-            {
-                _restoreIssue = "P1 is not Joined; the public Actor replacement contract cannot restore its selection.";
-                yield break;
-            }
-
-            string subjectIssue = string.Empty;
-            if (!_hosts.TryGetValue(player1.PlayerSlotId,
-                    out LocalPlayerHostAuthoring host) || host == null ||
-                !TryResolveSubject(host, out Transform currentSubject, out _, out subjectIssue))
-            {
-                _restoreIssue = "P1's current Actor Subject is unavailable before restoring its original Actor. " + subjectIssue;
-                yield break;
-            }
-
-            bool alreadySelectedOriginal =
-                slot.Slot.SelectedActorProfile == _player1DefaultProfile;
-            Transform subjectToRemove = alreadySelectedOriginal
-                ? _player1ReplacementSubject
-                : currentSubject;
-            if (!alreadySelectedOriginal)
-            {
-                if (slot.Slot.SelectedActorProfile != player1Replacement ||
-                    slot.CurrentActor.ActorEvidence.ActorProfileId !=
-                        player1Replacement.ActorProfileId)
-                {
-                    _restoreIssue = "P1's current prepared Actor is not the certified replacement or the original Actor profile.";
-                    yield break;
-                }
-
-                var request = new PlayerPreparedActorReplacementRequest(
-                    player1.PlayerSlotId,
-                    _player1DefaultProfile,
-                    ScenarioId,
-                    "Restore P1's original prepared Actor while P1 remains Joined.",
-                    slot.Slot.SelectionRevision,
-                    observation.Participation.Revision);
-                PlayerPreparedActorReplacementResult result =
-                    access.RequestReplacePreparedActor(request);
-                if (result == null || !result.ReplacementCommitted ||
-                    result.CleanupPending || !result.CurrentActor.HasActorEvidence ||
-                    result.CurrentActor.ActorEvidence.ActorProfileId !=
-                        _player1DefaultProfile.ActorProfileId ||
-                    result.CurrentActor.ActorEvidence.ActorId == _player1ReplacementActorId)
-                {
-                    _restoreIssue = "Public prepared Actor replacement did not restore P1's original Actor profile. " +
-                        (result != null
-                            ? $"status='{result.Status}' committed='{result.ReplacementCommitted}' cleanupPending='{result.CleanupPending}' message='{result.Message}'."
-                            : "No replacement result was returned.");
-                    yield break;
-                }
-            }
-            else if (!slot.CurrentActor.HasCurrentActor ||
-                slot.CurrentActor.ActorEvidence.ActorProfileId !=
-                    _player1DefaultProfile.ActorProfileId)
-            {
-                _restoreIssue = "P1's selected original Actor profile does not match its current prepared Actor evidence.";
-                yield break;
-            }
-
-            PlayerSlotId[] expectedJoined = observation.Participation.Slots
-                .Where(candidate => candidate.IsJoined)
-                .Select(candidate => candidate.PlayerSlotId)
-                .ToArray();
-            yield return WaitForStage(stage, expectedJoined, subjectToRemove);
-            if (!_waitSucceeded)
-            {
-                _restoreIssue = _waitIssue;
-                yield break;
-            }
-
-            if (!playerSessionObserver.TryGetAccess(
-                    out access,
-                    out _restoreIssue) ||
-                !access.TryGetObservation(
-                    out PlayerSessionScopedObservationSnapshot restoredObservation) ||
-                !TryGetObservedSlot(restoredObservation, player1.PlayerSlotId,
-                    out PlayerSessionScopedSlotObservation restoredSlot) ||
-                !restoredSlot.IsJoined || !restoredSlot.IsLogicalActorPrepared ||
-                restoredSlot.Slot.SelectedActorProfile != _player1DefaultProfile ||
-                !restoredSlot.CurrentActor.HasCurrentActor ||
-                restoredSlot.CurrentActor.ActorEvidence.ActorProfileId !=
-                    _player1DefaultProfile.ActorProfileId ||
-                restoredSlot.CurrentActor.ActorEvidence.ActorId == _player1ReplacementActorId)
-            {
-                if (string.IsNullOrEmpty(_restoreIssue))
-                    _restoreIssue = "P1's original prepared Actor was not observable after SharedGroup reconciliation.";
-                yield break;
-            }
-
-            _selectionRestored = true;
         }
 
         private IEnumerator WaitForStage(string stage, IReadOnlyList<PlayerSlotId> expectedJoined,
@@ -701,20 +655,11 @@ namespace Immersive.QaFramework.IfAdr042
 
             if (expectedJoined.Count > 0)
             {
-                string accessIssue = string.Empty;
                 if (playerSessionObserver == null ||
-                    !playerSessionObserver.TryGetAccess(
-                        out IPlayerSessionScopedAccess access,
-                        out accessIssue))
-                {
-                    issue = $"{stage}: Activity-scoped Player Session observation is unavailable while waiting for contextual Actor preparation. {accessIssue}";
-                    return false;
-                }
-
-                if (!access.TryGetObservation(
+                    !playerSessionObserver.TryGetObservation(
                         out PlayerSessionScopedObservationSnapshot observation))
                 {
-                    issue = $"{stage}: Activity-scoped Player Session observation could not be read while waiting for contextual Actor preparation.";
+                    issue = $"{stage}: Activity-scoped Player Session observation is unavailable while waiting for contextual Actor preparation. {playerSessionObserver?.Diagnostic}";
                     return false;
                 }
 
@@ -913,27 +858,11 @@ namespace Immersive.QaFramework.IfAdr042
         {
             string accessIssue = string.Empty;
             if (routeSessionObserver == null || !routeSessionObserver.IsAvailable ||
-                !routeSessionObserver.TryGetAccess(out _sessionAccess, out accessIssue))
+                !TryResolveRouteCommands(out accessIssue))
             {
-                SetCleanupIssue("Route-scoped Player Session access is unavailable; public Leaves cannot be confirmed. " + accessIssue);
+                SetCleanupIssue("Route-scoped Player Session commands are unavailable; public Leaves cannot be confirmed. " + accessIssue);
                 PublishTerminal(false);
                 yield break;
-            }
-
-            if (_replacementApplied && !_selectionRestored)
-            {
-                if (TryGetCurrentSlot(player1.PlayerSlotId, out PlayerSlotRuntimeSnapshot p1) &&
-                    p1.IsJoined)
-                {
-                    yield return RestorePlayer1ActorAndVerify(
-                        "cleanup P1 original Actor/Subject restoration");
-                    if (!_selectionRestored)
-                        SetCleanupIssue("Public P1 Actor restoration failed during cleanup: " + _restoreIssue);
-                }
-                else
-                {
-                    SetCleanupIssue("P1 is no longer Joined; the public contract does not allow restoring Actor selection and cleanup will not issue a temporary Join.");
-                }
             }
 
             PlayerParticipationSnapshot beforeCleanup = CurrentSnapshot;
@@ -946,9 +875,12 @@ namespace Immersive.QaFramework.IfAdr042
                     .FirstOrDefault(slot => slot.IsJoined);
                 if (!joined.IsJoined) break;
 
-                SessionPlayerLeaveResult leave = _sessionAccess.RequestLeave(
-                    new SessionPlayerLeaveRequest(joined.PlayerSlotId, joined.Revision,
-                        ScenarioId, "Unwind public Player Leave during QA cleanup."));
+                PlayerSlotProfile joinedProfile = joined.PlayerSlotId == player1.PlayerSlotId
+                    ? player1
+                    : joined.PlayerSlotId == player2.PlayerSlotId ? player2 : null;
+                SessionPlayerLeaveResult leave = QaPlayerSessionCommandAccess.Leave(
+                    routeSessionObserver,
+                    joinedProfile);
                 if (leave == null || !leave.Succeeded)
                 {
                     SetCleanupIssue("Public Leave cleanup failed: " + leave?.ToDiagnosticString());
@@ -961,8 +893,8 @@ namespace Immersive.QaFramework.IfAdr042
 
             if (_joiningWasOpened)
             {
-                PlayerParticipationOperationResult close = _sessionAccess.CloseJoining(
-                    ScenarioId, "Restore the initially closed QA Player joining state.");
+                PlayerParticipationOperationResult close =
+                    QaPlayerSessionCommandAccess.CloseJoining(routeSessionObserver);
                 if (close == null || !close.Succeeded)
                     SetCleanupIssue("Public CloseJoining cleanup failed: " + close?.ToDiagnosticString());
                 _joiningWasOpened = false;
@@ -1005,7 +937,8 @@ namespace Immersive.QaFramework.IfAdr042
             }
         }
 
-        private IEnumerator WaitUntil(Func<bool> condition, string timeoutIssue)
+        private IEnumerator WaitUntil(Func<bool> condition, string timeoutIssue,
+            Func<string> readinessDiagnostic = null)
         {
             _waitSucceeded = false;
             _waitIssue = string.Empty;
@@ -1018,7 +951,9 @@ namespace Immersive.QaFramework.IfAdr042
                 }
                 yield return null;
             }
+            string readiness = readinessDiagnostic != null ? readinessDiagnostic() : string.Empty;
             _waitIssue = timeoutIssue + " " +
+                (string.IsNullOrWhiteSpace(readiness) ? string.Empty : "readinessIssue='" + Sanitize(readiness) + "' ") +
                 (routeSessionObserver != null ? routeSessionObserver.Diagnostic : string.Empty) + " " +
                 (evidence != null
                     ? $"evidenceOutputs='{evidence.Outputs.Count}' evidenceOccurrences='{evidence.Occurrences.Count}' evidenceDiagnostic='{evidence.Diagnostic}'"

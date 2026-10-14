@@ -39,7 +39,6 @@ namespace Immersive.QaFramework.IfAdr043
         [SerializeField, Min(1)] private int frameBudget = 180;
 
         private readonly QaCertificationRecorder _certification = new QaCertificationRecorder();
-        private IPlayerSessionScopedAccess _sessionAccess;
         private readonly Dictionary<PlayerSlotId, PlayerInput> _inputs = new Dictionary<PlayerSlotId, PlayerInput>();
         private readonly Dictionary<PlayerSlotId, CameraOutputId> _outputForSlot = new Dictionary<PlayerSlotId, CameraOutputId>();
         private Keyboard _player1QaDevice;
@@ -88,9 +87,10 @@ namespace Immersive.QaFramework.IfAdr043
             }
 
             yield return WaitFor(() => routeSessionObserver != null && routeSessionObserver.IsAvailable &&
-                routeSessionObserver.TryGetAccess(out _sessionAccess, out _) && _sessionAccess != null &&
+                QaPlayerSessionCommandAccess.FindLeave(routeSessionObserver, player1)?.IsScopedAccessAvailable == true &&
+                QaPlayerSessionCommandAccess.FindLeave(routeSessionObserver, player2)?.IsScopedAccessAvailable == true &&
                 outputEvidence.Outputs.Count == 2 && outputEvidence.Outputs.All(output => output != null && output.IsReady),
-                "Framework did not expose the Route-scoped Player Session access and both ready Outputs.");
+                "Framework did not expose the Route-scoped Observer/Leave triggers and both ready Outputs.");
             if (!_waitSucceeded)
             {
                 RecordBlocked(_waitIssue);
@@ -359,8 +359,9 @@ namespace Immersive.QaFramework.IfAdr043
                 yield break;
             }
 
-            SessionPlayerLeaveResult result = _sessionAccess.RequestLeave(new SessionPlayerLeaveRequest(
-                slotId, slot.Revision, "QA-IF-ADR-043", stage));
+            SessionPlayerLeaveResult result = QaPlayerSessionCommandAccess.Leave(
+                routeSessionObserver,
+                profile);
             if (result == null || !result.Succeeded)
             {
                 RecordFail($"{stage}: public Leave failed. result='{result?.ToDiagnosticString()}'.");
@@ -548,10 +549,9 @@ namespace Immersive.QaFramework.IfAdr043
         {
             string accessIssue = string.Empty;
             if (routeSessionObserver == null || !routeSessionObserver.IsAvailable ||
-                !routeSessionObserver.TryGetAccess(out _sessionAccess, out accessIssue) || _sessionAccess == null ||
                 !routeSessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot cleanupSnapshot) || cleanupSnapshot == null)
             {
-                SetCleanupFailure("Route-scoped Player Session access was unavailable; public Leaves could not be confirmed. " + accessIssue);
+                SetCleanupFailure("Route-scoped Player Session observation was unavailable; public Leaves could not be confirmed.");
                 StopFrameCoverageMonitoring();
                 PublishTerminal();
                 yield break;
@@ -570,8 +570,12 @@ namespace Immersive.QaFramework.IfAdr043
                 PlayerSlotRuntimeSnapshot joined = cleanupSnapshot.Slots.FirstOrDefault(slot => slot.IsJoined);
                 if (!joined.IsValid) break;
 
-                SessionPlayerLeaveResult leave = _sessionAccess.RequestLeave(new SessionPlayerLeaveRequest(
-                    joined.PlayerSlotId, joined.Revision, "QA-IF-ADR-043", "terminal-cleanup"));
+                PlayerSlotProfile joinedProfile = joined.PlayerSlotId == player1.PlayerSlotId
+                    ? player1
+                    : joined.PlayerSlotId == player2.PlayerSlotId ? player2 : null;
+                SessionPlayerLeaveResult leave = QaPlayerSessionCommandAccess.Leave(
+                    routeSessionObserver,
+                    joinedProfile);
                 if (leave == null || !leave.Succeeded)
                 {
                     leavesSucceeded = false;

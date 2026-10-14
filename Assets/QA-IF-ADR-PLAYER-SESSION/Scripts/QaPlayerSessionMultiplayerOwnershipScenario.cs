@@ -24,7 +24,6 @@ namespace Immersive.QaFramework.PlayerSession
         [SerializeField, Min(1)] private int frameBudget = 600;
 
         private readonly QaCertificationRecorder _recorder = new QaCertificationRecorder();
-        private IPlayerSessionScopedAccess _access;
         private Keyboard _deviceA;
         private Keyboard _deviceB;
         private QaPlayerSessionJoinEvidence _joinA;
@@ -78,18 +77,18 @@ namespace Immersive.QaFramework.PlayerSession
 
         private void TrySynchronousLeave()
         {
-            if (_access == null || sessionObserver == null || !sessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot)) return;
+            if (sessionObserver == null || !sessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot)) return;
             for (int index = 0; index < snapshot.Slots.Count; index++)
             {
                 PlayerSlotRuntimeSnapshot slot = snapshot.Slots[index];
                 if (!slot.IsJoined) continue;
-                SessionPlayerLeaveResult result = RequestLeave(slot.PlayerSlotId, slot.Revision, "Synchronous interruption cleanup.");
+                SessionPlayerLeaveResult result = RequestLeave(slot.PlayerSlotId);
                 if (result == null || !result.Succeeded)
                     SetCleanupIssue("Interrupted-run Leave failed: " + (result != null ? result.ToDiagnosticString() : "null result"));
             }
             if (_joiningOpened)
             {
-                PlayerParticipationOperationResult close = _access.CloseJoining(ScenarioId, "Close Joining after interrupted execution.");
+                PlayerParticipationOperationResult close = QaPlayerSessionCommandAccess.CloseJoining(sessionObserver);
                 if (close == null || !close.Succeeded) SetCleanupIssue("Interrupted-run CloseJoining failed.");
             }
         }
@@ -100,7 +99,7 @@ namespace Immersive.QaFramework.PlayerSession
             if (HasIssue) { yield return CleanupAndPublish(); yield break; }
 
             _stage = "open-joining";
-            PlayerParticipationOperationResult opened = _access.OpenJoining(ScenarioId, "Open admission for two independent synthetic devices.");
+            PlayerParticipationOperationResult opened = QaPlayerSessionCommandAccess.OpenJoining(sessionObserver);
             if (opened == null || !opened.Succeeded)
             {
                 RecordBlocked("Public OpenJoining was unavailable from the valid baseline. " + (opened != null ? opened.ToDiagnosticString() : "null result"));
@@ -161,7 +160,7 @@ namespace Immersive.QaFramework.PlayerSession
             LogStage("simultaneous-isolation", DescribeCurrent(_joinB.Slot.PlayerSlotId));
 
             _stage = "leave-p1";
-            SessionPlayerLeaveResult leaveA = RequestLeave(_joinA.Slot.PlayerSlotId, CurrentSlotRevision(_joinA.Slot.PlayerSlotId), "Leave P1 while P2 remains active.");
+            SessionPlayerLeaveResult leaveA = RequestLeave(_joinA.Slot.PlayerSlotId);
             _leaveAStatus = leaveA != null ? leaveA.Status.ToString() : "null";
             if (leaveA == null || !leaveA.Succeeded)
             {
@@ -228,7 +227,7 @@ namespace Immersive.QaFramework.PlayerSession
             for (int frame = 0; frame < Mathf.Max(1, frameBudget); frame++)
             {
                 if (sessionObserver != null && joinTrigger != null && expectedP1 != null && expectedP2 != null && expectedDefaultActor != null &&
-                    expectedP1 != expectedP2 && sessionObserver.IsAvailable && sessionObserver.TryGetAccess(out _access, out _) && _access != null &&
+                    expectedP1 != expectedP2 && sessionObserver.IsAvailable &&
                     sessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot) && snapshot.IsInitialized && snapshot.ConfiguredSlotCount == 2 &&
                     snapshot.Slots.Count == 2 && snapshot.Slots[0].Profile == expectedP1 && snapshot.Slots[1].Profile == expectedP2 &&
                     snapshot.AvailableCount == 2 && snapshot.JoinedCount == 0 && snapshot.ReservedCount == 0 && !snapshot.JoiningOpen &&
@@ -367,7 +366,7 @@ namespace Immersive.QaFramework.PlayerSession
                     break;
                 }
 
-                SessionPlayerLeaveResult leave = RequestLeave(target.PlayerSlotId, target.Revision, "Scenario cleanup.");
+                SessionPlayerLeaveResult leave = RequestLeave(target.PlayerSlotId);
                 _leaveFinalStatus += (string.IsNullOrEmpty(_leaveFinalStatus) ? string.Empty : ",") + (leave != null ? leave.Status.ToString() : "null");
                 if (leave == null || !leave.Succeeded)
                 {
@@ -394,9 +393,9 @@ namespace Immersive.QaFramework.PlayerSession
                 }
             }
 
-            if (_joiningOpened && _access != null)
+            if (_joiningOpened)
             {
-                PlayerParticipationOperationResult closed = _access.CloseJoining(ScenarioId, "Close Joining after cleanup.");
+                PlayerParticipationOperationResult closed = QaPlayerSessionCommandAccess.CloseJoining(sessionObserver);
                 if (closed == null || !closed.Succeeded)
                     SetCleanupIssue("CloseJoining cleanup failed: " + (closed != null ? closed.ToDiagnosticString() : "null result"));
             }
@@ -489,9 +488,9 @@ namespace Immersive.QaFramework.PlayerSession
             PublishTerminal();
             yield break;
         }
-        private SessionPlayerLeaveResult RequestLeave(PlayerSlotId slotId, int revision, string reason)
+        private SessionPlayerLeaveResult RequestLeave(PlayerSlotId slotId)
         {
-            return _access.RequestLeave(new SessionPlayerLeaveRequest(slotId, revision, ScenarioId, reason));
+            return QaPlayerSessionCommandAccess.Leave(sessionObserver, slotId);
         }
 
         private int CurrentSlotRevision(PlayerSlotId id)
@@ -543,7 +542,7 @@ namespace Immersive.QaFramework.PlayerSession
             _terminal = true;
             QaCertificationResult result = _recorder.CreateResult(ScenarioId, _cleanupDisposition, _cleanupIssue);
             string verdict = result.Verdict.ToString().ToUpperInvariant();
-            Debug.Log($"[{ScenarioId}][terminal] verdict='{verdict}' joinA='{_joinAStatus}' joinB='{_joinBStatus}' leaveA='{_leaveAStatus}' rejoinA='{_rejoinAStatus}' leaveFinal='{_leaveFinalStatus}' simultaneousIsolation='{_simultaneousIsolation}' p2AfterLeave='{_p2PreservedAfterLeave}' p2AfterRejoin='{_p2PreservedAfterRejoin}' cleanup='{result.CleanupDisposition}' firstCause='{result.FirstCausalDivergence}' cleanupIssue='{result.CleanupIssue}'");
+            Debug.Log($"[{ScenarioId}][terminal] verdict='{verdict}' stage='{_stage}' joinA='{_joinAStatus}' joinB='{_joinBStatus}' leaveA='{_leaveAStatus}' rejoinA='{_rejoinAStatus}' leaveFinal='{_leaveFinalStatus}' simultaneousIsolation='{_simultaneousIsolation}' p2AfterLeave='{_p2PreservedAfterLeave}' p2AfterRejoin='{_p2PreservedAfterRejoin}' cleanup='{result.CleanupDisposition}' firstCause='{result.FirstCausalDivergence}' cleanupIssue='{result.CleanupIssue}'");
         }
     }
 }

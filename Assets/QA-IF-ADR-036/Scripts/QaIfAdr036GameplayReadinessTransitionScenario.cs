@@ -48,7 +48,6 @@ namespace Immersive.QaFramework.IfAdr036
         private PlayerInput _input;
         private LocalPlayerHostAuthoring _host;
         private PlayerGameplayInputReader _reader;
-        private IPlayerSessionScopedAccess _routeAccess;
         private PlayerSlotId _slotId;
         private PlayerSessionScopedSlotObservation _bSlotBaseline;
         private RuntimeContentOwner _bOwnerBaseline;
@@ -90,8 +89,9 @@ namespace Immersive.QaFramework.IfAdr036
             }
 
             yield return WaitUntil(() => routeObserver.IsAvailable &&
-                routeObserver.TryGetAccess(out _routeAccess, out _) && _routeAccess != null,
-                "Route-scoped Player Session access did not bind.");
+                QaPlayerSessionCommandAccess.FindOpenJoining(routeObserver)?.IsScopedAccessAvailable == true &&
+                QaPlayerSessionCommandAccess.FindCloseJoining(routeObserver)?.IsScopedAccessAvailable == true,
+                "Route-scoped Player Session Observer and Open/Close command triggers did not bind.");
             if (Diverged) { yield return CleanupAndPublish(); yield break; }
             if (!routeObserver.TryGetObservation(out PlayerSessionScopedObservationSnapshot initial) ||
                 !TryGetSlot(initial, out PlayerSessionScopedSlotObservation initialSlot) || initialSlot.IsJoined ||
@@ -111,7 +111,8 @@ namespace Immersive.QaFramework.IfAdr036
                 yield break;
             }
 
-            PlayerParticipationOperationResult opened = _routeAccess.OpenJoining(ScenarioId, "Open controlled P1 Join.");
+            PlayerParticipationOperationResult opened =
+                QaPlayerSessionCommandAccess.OpenJoining(routeObserver);
             if (opened == null || !opened.Succeeded)
             {
                 RecordBlocked("OpenJoining did not succeed: " + opened?.ToDiagnosticString());
@@ -131,7 +132,8 @@ namespace Immersive.QaFramework.IfAdr036
             }
             _input = evidence.PlayerInput;
             _host = evidence.Host;
-            PlayerParticipationOperationResult closed = _routeAccess.CloseJoining(ScenarioId, "Close Join after P1.");
+            PlayerParticipationOperationResult closed =
+                QaPlayerSessionCommandAccess.CloseJoining(routeObserver);
             if (closed == null || !closed.Succeeded)
             {
                 RecordFail("CloseJoining failed after Join: " + closed?.ToDiagnosticString());
@@ -474,12 +476,13 @@ namespace Immersive.QaFramework.IfAdr036
             bool restoreAAfterLeave = active != null &&
                 active.TryGetObservation(out PlayerSessionScopedObservationSnapshot current) &&
                 IsOwner(current.ActivityOwner, activityB);
-            if (active != null && active.TryGetAccess(out IPlayerSessionScopedAccess access, out _) &&
-                access.TryGetObservation(out PlayerSessionScopedObservationSnapshot observation) &&
+            if (active != null &&
+                active.TryGetObservation(out PlayerSessionScopedObservationSnapshot observation) &&
                 TryGetSlot(observation, out PlayerSessionScopedSlotObservation slot) && slot.IsJoined)
             {
-                SessionPlayerLeaveResult leave = access.RequestLeave(new SessionPlayerLeaveRequest(
-                    _slotId, slot.Slot.Revision, ScenarioId, "Restore empty Session baseline."));
+                SessionPlayerLeaveResult leave = QaPlayerSessionCommandAccess.Leave(
+                    active,
+                    playerSlot);
                 if (leave == null || !leave.Succeeded) _cleanupIssue = Append(_cleanupIssue, "Public Leave failed.");
                 for (int frame = 0; frame < frameBudget; frame++)
                 {
@@ -511,9 +514,10 @@ namespace Immersive.QaFramework.IfAdr036
                 }
                 if (!aRestored) _cleanupIssue = Append(_cleanupIssue, "Activity A baseline was not restored after Session Leave.");
             }
-            if (_routeAccess != null)
+            if (routeObserver != null)
             {
-                PlayerParticipationOperationResult close = _routeAccess.CloseJoining(ScenarioId, "Restore closed Joining baseline.");
+                PlayerParticipationOperationResult close =
+                    QaPlayerSessionCommandAccess.CloseJoining(routeObserver);
                 if (close == null || !close.Completed) _cleanupIssue = Append(_cleanupIssue, "CloseJoining cleanup failed.");
             }
             if (_keyboard != null && _keyboard.added) InputSystem.RemoveDevice(_keyboard);

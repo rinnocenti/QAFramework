@@ -3,9 +3,11 @@ using System.IO;
 using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.PlayerParticipation;
+using Immersive.Framework.PlayerSlots;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.QaFramework.IfAdr046;
 using Immersive.QaFramework.PlayerSession;
+using Immersive.QaFramework.PlayerSession.Editor;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -123,6 +125,19 @@ namespace Immersive.QaFramework.IfAdr046.Editor
                 UnityEngine.Object.DestroyImmediate(existingTrigger);
 
             GameObject root = observers[0].gameObject;
+            PlayerSlotProfile playerSlot = Load<GameApplicationAsset>(AppPath)
+                .DefaultPlayerSessionProfile.SupportedSlots[0];
+            QaPlayerSessionCommandTriggerSetup.EnsureOpenJoining(
+                root,
+                LocalPlayerProvisioningConsumerScope.Activity);
+            QaPlayerSessionCommandTriggerSetup.EnsureCloseJoining(
+                root,
+                LocalPlayerProvisioningConsumerScope.Activity);
+            QaPlayerSessionCommandTriggerSetup.EnsureLeave(
+                root,
+                "Leave Player 1",
+                LocalPlayerProvisioningConsumerScope.Activity,
+                playerSlot);
             PlayerSessionJoinTrigger trigger = root.AddComponent<PlayerSessionJoinTrigger>();
             SerializedObject triggerObject = new SerializedObject(trigger);
             SerializedProperty scope = triggerObject.FindProperty("scope");

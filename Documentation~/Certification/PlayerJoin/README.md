@@ -2,10 +2,10 @@
 
 This record preserves observed Manager-Provisioned Join evidence without assigning retrospective execution metadata. Unity Test Runner, QA terminal and FirstGame results were supplied by the user; Codex did not execute Unity, NUnit, Play Mode or build. The original FirstGame log and Test Runner screenshot are now preserved in [PlayerStable-2026-10-12 evidence](Evidence/PlayerStable-2026-10-12/manifest.json). QA transcripts remain user-supplied terminal-line transcriptions, not full raw runner logs. Execution-time Framework/QA SHAs and exact run timestamps remain unknown, so provenance is **partial** and is accepted for the bounded Player Join decision only under IF-ADR-046 Amendment 003.
 
-The current I4 evidence is summarized in [IF-ADR-046 I4 — Scoped Join Binding](IF-ADR-046-I4-Scoped-Binding-Scenario.md). Keep its two lanes separate:
+The I4 evidence is summarized in [IF-ADR-046 I4 — Scoped Join Binding](IF-ADR-046-I4-Scoped-Binding-Scenario.md). Keep the Play Mode Observable fixture separate from Framework package EditMode lease/identity coverage:
 
-- **OBSERVABLE** covers public lifecycle, current Join/Leave, stale public rejection, no unintended Session revision change and cleanup.
-- **LEASE** concerns internal validation of a stale lease. It remains **BLOCKED** where a destroyed Unity component returns before the lease comparison; this is not an OBSERVABLE failure and must not be reported as PASS.
+- **OBSERVABLE** covers public lifecycle, current Join/Leave, occurrence reentry identity and cleanup. The current fixture does not invoke retired Join triggers.
+- The historical integrated **LEASE** probe is **BLOCKED 3/3** where a destroyed Unity component returns before lease comparison. This result remains historical and is not emitted by the current fixture. Framework package EditMode tests continue to cover lease capture and identity comparison; neither result should be substituted for the other.
 
 I4 is **accepted by composite evidence with documented limitations**. P1 (the exact identity tuple captured by the real binder) and P2 (a real stale port's zero delegation to the Manager) are supported by static review, not demonstrated directly by test. The LEASE lane remains BLOCKED 3/3 as historical coverage; this is not converted to PASS and does not invalidate the proportional I4 acceptance. I5 migration and legacy Join entrypoint retirement have since been completed; neither action promotes an API to Stable. The final regression and consumer observations are recorded below with their provenance limits.
 
@@ -16,8 +16,8 @@ I4 is **accepted by composite evidence with documented limitations**. P1 (the ex
 | Framework EditMode, after legacy entrypoint removal | 292/292 PASS; PlayerParticipation 101/101; zero failures | Supplied Test Runner screenshot is archived in the Player Stable evidence set; no execution SHA, timestamp, raw XML/log or exact executed workspace bytes are associated. Provenance partial; risk explicitly accepted by IF-ADR-046 Amendment 003 for the bounded closure. |
 | Slice 1 — Session / Join, after bridge correction | PASS 8/8; `BaselineRestored` | Later user-reported replay; exact terminal/log, timestamp and execution SHAs were not supplied or associated. The historical `Slice1-PlayMode/manifest.json` remains the earlier pre-correction run and is not rewritten. |
 | I4 minimal | PASS 1/1; `BaselineRestored` | Partial provenance; exact terminal/log and execution metadata are not associated. |
-| I4.2 OBSERVABLE | PASS 8/8; `BaselineRestored`; five Join/Leave outcomes `Joined/Admitted`; Activity and Route A→B→A reentries observed; three stale calls `RejectedUnavailable` without Session revision change | Public behavior as reported. Stale-call rejection is not evidence that internal lease validation ran. |
-| I4.2 LEASE | BLOCKED 3/3 | Destroyed-object guard prevents attributing the rejection to the internal lease comparison. |
+| I4.2 OBSERVABLE | Revised fixture reported PASS 8/8; `BaselineRestored`; five Join/Leave outcomes `Joined/Admitted`; Activity and Route reentries observed | User supplied the terminal after probe removal. The eight cases now cover current Join/Leave, lifecycle and reentry assertions. Execution source identity and raw log remain unavailable. |
+| I4.2 LEASE | Historical BLOCKED 3/3 | Destroyed-object guard prevented attributing rejection to internal lease comparison. Current occurrence fixture no longer emits this terminal; Framework EditMode lease/identity tests remain separate and unchanged. |
 | Post-removal QA regression: IF-ADR-042/043/044 | 22/22 PASS: 042 7/7, 043 7/7, 044 8/8; all `BaselineRestored`, cleanup 3/3 | User-reported after legacy entrypoint removal, with partial provenance; no retrospective SHA or raw log association. |
 
 The supplied [Player Stable evidence set](Evidence/PlayerStable-2026-10-12/manifest.json) includes the FirstGame raw log, EditMode screenshot, QA terminal transcript, supplied README and checksum list, plus the original ZIP. Their SHA-256 values were checked after preservation. The artifact hashes establish that these files were preserved unchanged; they do not establish the Framework/QA SHA or timestamp used during execution. The responsible authority accepted this residual provenance risk for this bounded maturity decision; no missing execution metadata is inferred.
@@ -37,7 +37,7 @@ The existing EditMode record is [Evidence/NUnit-EditMode/manifest.json](Evidence
 
 1. Save exact terminal lines, first causes, execution/unwind diagnostics and cleanup results. Do not synthesize PASS from individual stages.
 2. If the provenance template is used, fill it only with values observed for that execution. Verify recorded fingerprints or artifact hashes against the original bytes; do not fabricate missing metadata.
-3. Keep OBSERVABLE and LEASE results separate, including when one passes and the other is blocked.
+3. Keep the OBSERVABLE Play Mode result separate from Framework package EditMode lease/identity coverage. Retain the historical BLOCKED Play Mode LEASE result without attaching it to a new OBSERVABLE run.
 4. Retain failed, blocked and superseded evidence; a later result does not rewrite the earlier run.
 
 ## Related evidence

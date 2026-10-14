@@ -14,6 +14,7 @@ using Immersive.Framework.UnityInput;
 using Immersive.QaFramework.IfAdr042;
 using Immersive.QaFramework.IfAdr044;
 using Immersive.QaFramework.PlayerSession;
+using Immersive.QaFramework.PlayerSession.Editor;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -75,8 +76,8 @@ namespace Immersive.QaFramework.IfAdr044.Editor
             ActivityAsset activity = CreateActivity(activityContent, p1, p2);
             RouteAsset route = CreateRoute(activity);
             AssetDatabase.SaveAssets();
-            CreateRouteScene();
-            CreateActivityScene();
+            CreateRouteScene(p1, p2);
+            CreateActivityScene(p1, p2);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             // Scene generation/restoration can invalidate wrappers loaded before NewScene(Single).
@@ -356,12 +357,17 @@ namespace Immersive.QaFramework.IfAdr044.Editor
             return route;
         }
 
-        private static void CreateRouteScene()
+        private static void CreateRouteScene(
+            PlayerSlotProfile player1,
+            PlayerSlotProfile player2)
         {
             SceneSetup[] previous;
             Scene scene = BeginGeneratedScene(out previous);
             try
             {
+                // BeginGeneratedScene uses NewScene(Single), which invalidates earlier asset wrappers.
+                player1 = Load<PlayerSlotProfile>(Base + "/Settings/PlayerSlot_QaIfAdr042_P1.asset");
+                player2 = Load<PlayerSlotProfile>(Base + "/Settings/PlayerSlot_QaIfAdr042_P2.asset");
                 RouteAsset route = Load<RouteAsset>(RouteAssetPath);
                 GameObject root = new GameObject("IF-ADR-044 Startup Route Content");
                 RouteContentContribution contribution = root.AddComponent<RouteContentContribution>();
@@ -371,6 +377,19 @@ namespace Immersive.QaFramework.IfAdr044.Editor
                 Set(observer, "scope", (int)LocalPlayerProvisioningConsumerScope.Route);
                 PlayerSessionJoinTrigger trigger = root.AddComponent<PlayerSessionJoinTrigger>();
                 Set(trigger, "scope", (int)LocalPlayerProvisioningConsumerScope.Route);
+                QaPlayerSessionCommandTriggerSetup.EnsureOpenJoining(
+                    root,
+                    LocalPlayerProvisioningConsumerScope.Route);
+                QaPlayerSessionCommandTriggerSetup.EnsureLeave(
+                    root,
+                    "Leave Player 1",
+                    LocalPlayerProvisioningConsumerScope.Route,
+                    player1);
+                QaPlayerSessionCommandTriggerSetup.EnsureLeave(
+                    root,
+                    "Leave Player 2",
+                    LocalPlayerProvisioningConsumerScope.Route,
+                    player2);
                 if (contribution.Route != route || !contribution.HasExplicitLocalContentId)
                     throw new InvalidOperationException("IF-ADR-044 Route contribution did not retain its generated Route before scene save.");
                 EditorSceneManager.MarkSceneDirty(scene);
@@ -380,12 +399,17 @@ namespace Immersive.QaFramework.IfAdr044.Editor
             finally { EditorSceneManager.RestoreSceneManagerSetup(previous); }
         }
 
-        private static void CreateActivityScene()
+        private static void CreateActivityScene(
+            PlayerSlotProfile player1,
+            PlayerSlotProfile player2)
         {
             SceneSetup[] previous;
             Scene scene = BeginGeneratedScene(out previous);
             try
             {
+                // BeginGeneratedScene uses NewScene(Single), which invalidates earlier asset wrappers.
+                player1 = Load<PlayerSlotProfile>(Base + "/Settings/PlayerSlot_QaIfAdr042_P1.asset");
+                player2 = Load<PlayerSlotProfile>(Base + "/Settings/PlayerSlot_QaIfAdr042_P2.asset");
                 ActivityAsset activity = Load<ActivityAsset>(ActivityAssetPath);
                 GameObject root = new GameObject("IF-ADR-044 Activity Content");
                 ActivityContentContribution contribution = root.AddComponent<ActivityContentContribution>();
@@ -395,6 +419,16 @@ namespace Immersive.QaFramework.IfAdr044.Editor
                     throw new InvalidOperationException("IF-ADR-044 Activity contribution did not retain its generated Activity before scene save.");
                 PlayerSessionObserver observer = root.AddComponent<PlayerSessionObserver>();
                 Set(observer, "scope", (int)LocalPlayerProvisioningConsumerScope.Activity);
+                QaPlayerSessionCommandTriggerSetup.EnsureAvailabilityBlock(
+                    root,
+                    "Availability Block Player 1",
+                    LocalPlayerProvisioningConsumerScope.Activity,
+                    player1);
+                QaPlayerSessionCommandTriggerSetup.EnsureAvailabilityBlock(
+                    root,
+                    "Availability Block Player 1 Independent",
+                    LocalPlayerProvisioningConsumerScope.Activity,
+                    player1);
                 EditorSceneManager.MarkSceneDirty(scene);
                 if (!EditorSceneManager.SaveScene(scene, ActivityScene))
                     throw new InvalidOperationException("Could not save IF-ADR-044 Activity Content scene.");
@@ -791,7 +825,13 @@ namespace Immersive.QaFramework.IfAdr044.Editor
                 RouteContentContribution[] contributions = FindComponents<RouteContentContribution>(scene);
                 PlayerSessionObserver[] observers = FindComponents<PlayerSessionObserver>(scene);
                 PlayerSessionJoinTrigger[] triggers = FindComponents<PlayerSessionJoinTrigger>(scene);
+                PlayerSessionOpenJoiningCommandTrigger[] openJoining =
+                    FindComponents<PlayerSessionOpenJoiningCommandTrigger>(scene);
+                PlayerSessionLeaveCommandTrigger[] leaves =
+                    FindComponents<PlayerSessionLeaveCommandTrigger>(scene);
                 QaIfAdr044ConsumerGameplayAvailabilityScenario[] scenarios = FindComponents<QaIfAdr044ConsumerGameplayAvailabilityScenario>(scene);
+                PlayerSlotProfile player1 = Load<PlayerSlotProfile>(Base + "/Settings/PlayerSlot_QaIfAdr042_P1.asset");
+                PlayerSlotProfile player2 = Load<PlayerSlotProfile>(Base + "/Settings/PlayerSlot_QaIfAdr042_P2.asset");
                 if (contributions.Length != 1 || contributions[0] == null ||
                     contributions[0].Route != route || !contributions[0].HasExplicitLocalContentId ||
                     contributions[0].LocalContentIdText != "qa-if-adr-044.route-content" ||
@@ -800,6 +840,14 @@ namespace Immersive.QaFramework.IfAdr044.Editor
                     triggers[0].Scope != LocalPlayerProvisioningConsumerScope.Route ||
                     !observers[0].isActiveAndEnabled || !triggers[0].isActiveAndEnabled || !scenarios[0].isActiveAndEnabled)
                     throw new InvalidOperationException("IF-ADR-044 setup validation failed: Route scene must contain its contribution, enabled Route-scoped observer/trigger and one enabled controller.");
+                if (openJoining.Length != 1 || !openJoining[0].isActiveAndEnabled ||
+                    openJoining[0].Scope != LocalPlayerProvisioningConsumerScope.Route ||
+                    leaves.Length != 2 || leaves.Any(leave => !leave.isActiveAndEnabled ||
+                        leave.Scope != LocalPlayerProvisioningConsumerScope.Route ||
+                        leave.ExpectedLeaveOccurrenceRevision != -1) ||
+                    !leaves.Any(leave => leave.PlayerSlot == player1) ||
+                    !leaves.Any(leave => leave.PlayerSlot == player2))
+                    throw new InvalidOperationException("IF-ADR-044 setup validation failed: Route must contain one scoped OpenJoining and two scoped Leave commands bound to the exact QA Slots.");
                 SerializedObject serialized = new SerializedObject(scenarios[0]);
                 serialized.Update();
                 RequireReference(serialized, "gameApplication", Load<GameApplicationAsset>(ApplicationPath));
@@ -823,12 +871,21 @@ namespace Immersive.QaFramework.IfAdr044.Editor
                 ActivityAsset activity = Load<ActivityAsset>(ActivityAssetPath);
                 ActivityContentContribution[] contributions = FindComponents<ActivityContentContribution>(scene);
                 PlayerSessionObserver[] observers = FindComponents<PlayerSessionObserver>(scene);
+                PlayerGameplayAvailabilityBlockTrigger[] availabilityBlocks =
+                    FindComponents<PlayerGameplayAvailabilityBlockTrigger>(scene);
+                PlayerSlotProfile player1 = Load<PlayerSlotProfile>(Base + "/Settings/PlayerSlot_QaIfAdr042_P1.asset");
+                PlayerSlotProfile player2 = Load<PlayerSlotProfile>(Base + "/Settings/PlayerSlot_QaIfAdr042_P2.asset");
                 if (contributions.Length != 1 || contributions[0] == null ||
                     contributions[0].Activity != activity || !contributions[0].HasExplicitLocalContentId ||
                     contributions[0].LocalContentIdText != "qa-if-adr-044.activity-content.main" ||
                     observers.Length != 1 || observers[0] == null || !observers[0].isActiveAndEnabled ||
                     observers[0].Scope != LocalPlayerProvisioningConsumerScope.Activity)
                     throw new InvalidOperationException("IF-ADR-044 setup validation failed: generated Activity scene must contain its exact contribution and one enabled Activity-scoped Player Session Observer.");
+                if (availabilityBlocks.Length != 2 || availabilityBlocks.Any(block =>
+                        !block.isActiveAndEnabled || block.Scope != LocalPlayerProvisioningConsumerScope.Activity) ||
+                    availabilityBlocks.Any(block => block.PlayerSlot != player1) ||
+                    availabilityBlocks[0] == availabilityBlocks[1])
+                    throw new InvalidOperationException("IF-ADR-044 setup validation failed: Activity must contain exactly two distinct enabled Activity-scoped availability blocks bound to P1.");
             }
             finally { EditorSceneManager.RestoreSceneManagerSetup(previous); }
         }

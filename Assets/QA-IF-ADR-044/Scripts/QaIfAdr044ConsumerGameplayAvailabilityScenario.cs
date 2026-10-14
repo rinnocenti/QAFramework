@@ -48,9 +48,8 @@ namespace Immersive.QaFramework.IfAdr044
         private Keyboard _keyboard1;
         private Keyboard _keyboard2;
         private PlayerSessionObserver _observer;
-        private IPlayerSessionScopedAccess _routeAccess;
-        private PlayerGameplayAvailabilityBlockToken _firstBlock;
-        private PlayerGameplayAvailabilityBlockToken _secondBlock;
+        private PlayerGameplayAvailabilityBlockTrigger _block1;
+        private PlayerGameplayAvailabilityBlockTrigger _block2;
         private bool _started;
         private bool _terminal;
         private int _completed;
@@ -85,8 +84,12 @@ namespace Immersive.QaFramework.IfAdr044
             }
 
             yield return WaitFor(() => routeSessionObserver != null && routeSessionObserver.IsAvailable &&
-                routeSessionObserver.TryGetAccess(out _routeAccess, out _) && _routeAccess != null &&
+                QaPlayerSessionCommandAccess.FindOpenJoining(routeSessionObserver)?.IsScopedAccessAvailable == true &&
+                QaPlayerSessionCommandAccess.FindLeave(routeSessionObserver, player1)?.IsScopedAccessAvailable == true &&
+                QaPlayerSessionCommandAccess.FindLeave(routeSessionObserver, player2)?.IsScopedAccessAvailable == true &&
                 TryResolveObserver(out _) && _observer.IsAvailable &&
+                TryResolveAvailabilityBlocks() &&
+                _block1.IsScopedAccessAvailable && _block2.IsScopedAccessAvailable &&
                 routeSessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot initialSnapshot) && initialSnapshot != null &&
                 outputEvidence != null && outputEvidence.Outputs.Count == 1 &&
                 outputEvidence.Outputs[0] != null && outputEvidence.Outputs[0].IsReady &&
@@ -95,7 +98,7 @@ namespace Immersive.QaFramework.IfAdr044
                 outputEvidence.Occurrences.Count == 1 && outputEvidence.Occurrences[0] != null &&
                 outputEvidence.Occurrences[0].Composer != null &&
                 outputEvidence.Occurrences[0].Composer.FrameworkOwnedGroupTargetGroup != null,
-                "Route-scoped Player Session access, one Activity-scoped observer and one QA Output did not become available.");
+                "Route-scoped command triggers, Activity-scoped Observer/availability triggers and one QA Output did not become available.");
             if (!_waitSucceeded)
             {
                 RecordBlocked(_waitIssue);
@@ -141,8 +144,8 @@ namespace Immersive.QaFramework.IfAdr044
                 yield break;
             }
 
-            PlayerParticipationOperationResult opened = _routeAccess.OpenJoining(
-                ScenarioId, "Open deterministic QA joining.");
+            PlayerParticipationOperationResult opened =
+                QaPlayerSessionCommandAccess.OpenJoining(routeSessionObserver);
             if (opened == null || !opened.Succeeded)
             {
                 RecordFail("Public OpenJoining failed. " + opened?.ToDiagnosticString());
@@ -155,10 +158,9 @@ namespace Immersive.QaFramework.IfAdr044
             yield return Join(player2, _keyboard2, "P1 -> P1+P2");
             if (HasDivergence) { yield return CleanupAndPublish(); yield break; }
 
-            if (!TryGetAccess(out IPlayerSessionScopedAccess access, out issue) ||
-                !access.TryGetObservation(out PlayerSessionScopedObservationSnapshot before))
+            if (!TryGetObservation(out PlayerSessionScopedObservationSnapshot before, out issue))
             {
-                RecordBlocked("Activity-scoped public Player Session access is unavailable after Join. " + issue);
+                RecordBlocked("Activity-scoped public Player Session observation is unavailable after Join. " + issue);
                 yield return CleanupAndPublish();
                 yield break;
             }
@@ -172,15 +174,14 @@ namespace Immersive.QaFramework.IfAdr044
                 yield break;
             }
 
-            PlayerGameplayAvailabilityBlockResult first = access.RequestBlockRuntimeGameplay(
-                p1, ScenarioId, "Verify one consumer-owned gameplay block.");
+            _block1.RequestBlock();
+            PlayerGameplayAvailabilityBlockResult first = _block1.LastResult;
             if (first == null || !first.Succeeded || !first.BlockToken.IsValid)
             {
                 RecordFail("First public consumer block was not acquired. " + first?.Message);
                 yield return CleanupAndPublish();
                 yield break;
             }
-            _firstBlock = first.BlockToken;
             yield return WaitFor(() => IsBlocked(p1) && IsAvailable(p2),
                 "P1 did not become consumer-blocked while P2 remained available.");
             if (!_waitSucceeded || !VerifyPlayerState(baseline, p1, p2, out issue))
@@ -191,16 +192,15 @@ namespace Immersive.QaFramework.IfAdr044
             }
             _completed++;
 
-            PlayerGameplayAvailabilityBlockResult second = access.RequestBlockRuntimeGameplay(
-                p1, ScenarioId, "Verify independent consumer blocks compose.");
+            _block2.RequestBlock();
+            PlayerGameplayAvailabilityBlockResult second = _block2.LastResult;
             if (second == null || !second.Succeeded || !second.BlockToken.IsValid ||
-                second.BlockToken == _firstBlock)
+                second.BlockToken == first.BlockToken)
             {
                 RecordFail("Second independent consumer block was not acquired with a distinct token. " + second?.Message);
                 yield return CleanupAndPublish();
                 yield break;
             }
-            _secondBlock = second.BlockToken;
             yield return WaitFor(() => IsBlocked(p1) && IsAvailable(p2),
                 "P1 did not remain blocked after a second block was acquired.");
             if (!_waitSucceeded || !VerifyPlayerState(baseline, p1, p2, out issue))
@@ -211,52 +211,55 @@ namespace Immersive.QaFramework.IfAdr044
             }
             _completed++;
 
-            PlayerGameplayAvailabilityBlockResult releaseFirst = access.RequestReleaseRuntimeGameplay(
-                _firstBlock, ScenarioId, "Release only the first independent block.");
+            _block1.RequestRelease();
+            PlayerGameplayAvailabilityBlockResult releaseFirst = _block1.LastResult;
             if (releaseFirst == null || releaseFirst.Status != PlayerGameplayAvailabilityBlockStatus.SucceededReleased)
             {
                 RecordFail("Releasing the first consumer block failed. " + releaseFirst?.Message);
                 yield return CleanupAndPublish();
                 yield break;
             }
-            _firstBlock = default;
             yield return WaitFor(() => IsBlocked(p1) && IsAvailable(p2),
                 "Releasing one block bypassed the other active consumer block.");
             if (!_waitSucceeded) { RecordFail(_waitIssue); yield return CleanupAndPublish(); yield break; }
             _completed++;
 
-            PlayerGameplayAvailabilityBlockResult releaseSecond = access.RequestReleaseRuntimeGameplay(
-                _secondBlock, ScenarioId, "Release the remaining independent block.");
+            _block2.RequestRelease();
+            PlayerGameplayAvailabilityBlockResult releaseSecond = _block2.LastResult;
             if (releaseSecond == null || releaseSecond.Status != PlayerGameplayAvailabilityBlockStatus.SucceededReleased)
             {
                 RecordFail("Releasing the final consumer block failed. " + releaseSecond?.Message);
                 yield return CleanupAndPublish();
                 yield break;
             }
-            _secondBlock = default;
             yield return WaitFor(() => IsAvailable(p1) && IsAvailable(p2),
                 "Releasing the final block did not restore gameplay availability.");
             if (!_waitSucceeded) { RecordFail(_waitIssue); yield return CleanupAndPublish(); yield break; }
             _completed++;
 
-            PlayerGameplayAvailabilityBlockResult leaveBlock = access.RequestBlockRuntimeGameplay(
-                p1, ScenarioId, "Hold a block through public Leave.");
+            _block1.RequestBlock();
+            PlayerGameplayAvailabilityBlockResult leaveBlock = _block1.LastResult;
             if (leaveBlock == null || !leaveBlock.Succeeded || !leaveBlock.BlockToken.IsValid)
             {
                 RecordFail("Could not acquire the Leave invalidation block. " + leaveBlock?.Message);
                 yield return CleanupAndPublish();
                 yield break;
             }
-            _firstBlock = leaveBlock.BlockToken;
             if (!routeSessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot leaveSnapshot) || leaveSnapshot == null)
             {
                 RecordBlocked("Route-scoped Session snapshot is unavailable before Leave.");
                 yield return CleanupAndPublish();
                 yield break;
             }
-            PlayerSlotRuntimeSnapshot joinedSlot = leaveSnapshot.Slots.First(slot => slot.PlayerSlotId == p1);
-            SessionPlayerLeaveResult leave = _routeAccess.RequestLeave(new SessionPlayerLeaveRequest(
-                p1, joinedSlot.Revision, ScenarioId, "Leave while a consumer block is held."));
+            if (!leaveSnapshot.Slots.Any(slot => slot.PlayerSlotId == p1 && slot.IsJoined))
+            {
+                RecordFail("P1 was not Joined immediately before Leave while a consumer block was held.");
+                yield return CleanupAndPublish();
+                yield break;
+            }
+            SessionPlayerLeaveResult leave = QaPlayerSessionCommandAccess.Leave(
+                routeSessionObserver,
+                player1);
             if (leave == null || !leave.Succeeded)
             {
                 RecordFail("Public Leave failed while a consumer block was held. " + leave?.ToDiagnosticString());
@@ -265,13 +268,12 @@ namespace Immersive.QaFramework.IfAdr044
             }
             _inputs.Remove(p1);
             _readers.Remove(p1);
-            _firstBlock = default;
             yield return WaitFor(() => !IsJoined(p1) && IsAvailable(p2),
                 "Leave did not clear P1 membership and its consumer block.");
             if (!_waitSucceeded) { RecordFail(_waitIssue); yield return CleanupAndPublish(); yield break; }
 
-            PlayerGameplayAvailabilityBlockResult staleRelease = access.RequestReleaseRuntimeGameplay(
-                leaveBlock.BlockToken, ScenarioId, "Confirm the old occurrence token is stale after Leave.");
+            _block1.RequestRelease();
+            PlayerGameplayAvailabilityBlockResult staleRelease = _block1.LastResult;
             if (staleRelease == null || staleRelease.Status != PlayerGameplayAvailabilityBlockStatus.RejectedForeignOrStaleToken)
             {
                 RecordFail("A block token from the departed Player occurrence was not rejected as stale. " + staleRelease?.Message);
@@ -413,8 +415,7 @@ namespace Immersive.QaFramework.IfAdr044
         private bool VerifyPlayerState(PlayerStateBaseline baseline, PlayerSlotId p1, PlayerSlotId p2, out string issue)
         {
             issue = string.Empty;
-            if (!TryGetAccess(out IPlayerSessionScopedAccess access, out issue) ||
-                !access.TryGetObservation(out PlayerSessionScopedObservationSnapshot observation) ||
+            if (!TryGetObservation(out PlayerSessionScopedObservationSnapshot observation, out issue) ||
                 !TryGetSlot(observation, p1, out PlayerSessionScopedSlotObservation first) ||
                 !TryGetSlot(observation, p2, out PlayerSessionScopedSlotObservation second))
             {
@@ -443,11 +444,16 @@ namespace Immersive.QaFramework.IfAdr044
             return true;
         }
 
-        private bool TryGetAccess(out IPlayerSessionScopedAccess access, out string issue)
+        private bool TryGetObservation(
+            out PlayerSessionScopedObservationSnapshot observation,
+            out string issue)
         {
-            access = null;
+            observation = null;
             if (!TryResolveObserver(out issue)) return false;
-            return _observer.TryGetAccess(out access, out issue);
+            if (_observer.TryGetObservation(out observation) && observation != null && observation.IsAvailable)
+                return true;
+            issue = _observer.Diagnostic;
+            return false;
         }
 
         private bool TryResolveObserver(out string issue)
@@ -480,6 +486,18 @@ namespace Immersive.QaFramework.IfAdr044
                 return false;
             }
             _observer = candidates[0];
+            return true;
+        }
+
+        private bool TryResolveAvailabilityBlocks()
+        {
+            PlayerGameplayAvailabilityBlockTrigger[] blocks =
+                QaPlayerSessionCommandAccess.AvailabilityBlocks(_observer, player1);
+            if (blocks.Length != 2 || blocks[0] == null || blocks[1] == null || blocks[0] == blocks[1])
+                return false;
+
+            _block1 = blocks[0];
+            _block2 = blocks[1];
             return true;
         }
 
@@ -560,42 +578,36 @@ namespace Immersive.QaFramework.IfAdr044
 
         private IEnumerator CleanupAndPublish()
         {
-            if (_firstBlock.IsValid || _secondBlock.IsValid)
+            if (_block1 != null && _block1.OwnsActiveBlock)
             {
-                if (TryGetAccess(out IPlayerSessionScopedAccess access, out string issue))
-                {
-                    if (_firstBlock.IsValid)
-                    {
-                        PlayerGameplayAvailabilityBlockResult release = access.RequestReleaseRuntimeGameplay(_firstBlock, ScenarioId, "QA cleanup.");
-                        if (release == null || release.Status != PlayerGameplayAvailabilityBlockStatus.SucceededReleased)
-                            _cleanupIssue = Append(_cleanupIssue, "First owned block could not be released during cleanup.");
-                    }
-                    if (_secondBlock.IsValid)
-                    {
-                        PlayerGameplayAvailabilityBlockResult release = access.RequestReleaseRuntimeGameplay(_secondBlock, ScenarioId, "QA cleanup.");
-                        if (release == null || release.Status != PlayerGameplayAvailabilityBlockStatus.SucceededReleased)
-                            _cleanupIssue = Append(_cleanupIssue, "Second owned block could not be released during cleanup.");
-                    }
-                }
-                else _cleanupIssue = "Could not release consumer blocks during cleanup: " + issue;
-                _firstBlock = default;
-                _secondBlock = default;
+                _block1.RequestRelease();
+                if (_block1.LastResult == null || _block1.LastResult.Status != PlayerGameplayAvailabilityBlockStatus.SucceededReleased)
+                    _cleanupIssue = Append(_cleanupIssue, "First trigger-owned block could not be released during cleanup.");
+            }
+            if (_block2 != null && _block2.OwnsActiveBlock)
+            {
+                _block2.RequestRelease();
+                if (_block2.LastResult == null || _block2.LastResult.Status != PlayerGameplayAvailabilityBlockStatus.SucceededReleased)
+                    _cleanupIssue = Append(_cleanupIssue, "Second trigger-owned block could not be released during cleanup.");
             }
 
-            if (routeSessionObserver != null && routeSessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot) && snapshot != null &&
-                routeSessionObserver.TryGetAccess(out _routeAccess, out _) && _routeAccess != null)
+            if (routeSessionObserver != null && routeSessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot snapshot) && snapshot != null)
             {
                 foreach (PlayerSlotRuntimeSnapshot slot in snapshot.Slots.Where(item => item.IsJoined).ToArray())
                 {
-                    SessionPlayerLeaveResult leave = _routeAccess.RequestLeave(new SessionPlayerLeaveRequest(
-                        slot.PlayerSlotId, slot.Revision, ScenarioId, "Terminal QA cleanup public Leave."));
+                    PlayerSlotProfile profile = slot.PlayerSlotId == player1.PlayerSlotId
+                        ? player1
+                        : slot.PlayerSlotId == player2.PlayerSlotId ? player2 : null;
+                    SessionPlayerLeaveResult leave = QaPlayerSessionCommandAccess.Leave(
+                        routeSessionObserver,
+                        profile);
                     if (leave == null || !leave.Succeeded)
                         _cleanupIssue = Append(_cleanupIssue, "Public Leave cleanup failed for " + slot.PlayerSlotId.StableText + ".");
                 }
             }
             else
             {
-                _cleanupIssue = Append(_cleanupIssue, "Route-scoped Player Session access was unavailable during public Leave cleanup.");
+                _cleanupIssue = Append(_cleanupIssue, "Route-scoped Player Session observation was unavailable during public Leave cleanup.");
             }
             for (int frame = 0; frame < frameBudget && routeSessionObserver != null &&
                 routeSessionObserver.TryGetSnapshot(out PlayerParticipationSnapshot current) && current != null && current.Slots.Any(slot => slot.IsJoined); frame++)

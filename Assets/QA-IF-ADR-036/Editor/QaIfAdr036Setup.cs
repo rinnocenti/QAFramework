@@ -12,6 +12,7 @@ using Immersive.Framework.RouteLifecycle;
 using Immersive.Framework.Transition;
 using Immersive.Framework.TransitionEffects;
 using Immersive.QaFramework.IfAdr036;
+using Immersive.QaFramework.PlayerSession.Editor;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -147,6 +148,12 @@ namespace Immersive.QaFramework.IfAdr036.Editor
                 Set(contribution, "localContentId", "qa-if-adr-036.activity-b.main");
                 PlayerSessionObserver observer = root.AddComponent<PlayerSessionObserver>();
                 SetEnum(observer, "scope", "Activity");
+                PlayerSlotProfile player1 = Load<PlayerSlotProfile>(P1Path);
+                QaPlayerSessionCommandTriggerSetup.EnsureLeave(
+                    root,
+                    "Leave Player 1",
+                    LocalPlayerProvisioningConsumerScope.Activity,
+                    player1);
                 ActivityReadinessParticipant participant = root.AddComponent<ActivityReadinessParticipant>();
                 Set(participant, "participantId", "qa-if-adr-036.activity-b.required");
                 SetEnum(participant, "requiredness", "Required");
@@ -169,6 +176,15 @@ namespace Immersive.QaFramework.IfAdr036.Editor
                     throw new InvalidOperationException("Cloned Activity A scene must contain exactly one Activity content contribution.");
                 Set(contributions[0], "activity", activity);
                 Set(contributions[0], "localContentId", "qa-if-adr-036.activity-a.main");
+                PlayerSessionObserver observer = Components<PlayerSessionObserver>(scene).SingleOrDefault();
+                if (observer == null)
+                    throw new InvalidOperationException("Cloned Activity A scene must retain its unique Player Session observer.");
+                PlayerSlotProfile player1 = Load<PlayerSlotProfile>(P1Path);
+                QaPlayerSessionCommandTriggerSetup.EnsureLeave(
+                    observer.gameObject,
+                    "Leave Player 1",
+                    LocalPlayerProvisioningConsumerScope.Activity,
+                    player1);
                 if (contributions[0].Activity != activity)
                     throw new InvalidOperationException("Cloned Activity A contribution does not target the QA-IF-ADR-036 Activity asset.");
                 EditorSceneManager.MarkSceneDirty(scene);
@@ -290,6 +306,12 @@ namespace Immersive.QaFramework.IfAdr036.Editor
                 Set(contribution, "localContentId", "qa-if-adr-036.route.main");
                 PlayerSessionObserver observer = root.AddComponent<PlayerSessionObserver>();
                 SetEnum(observer, "scope", "Route");
+                QaPlayerSessionCommandTriggerSetup.EnsureOpenJoining(
+                    root,
+                    LocalPlayerProvisioningConsumerScope.Route);
+                QaPlayerSessionCommandTriggerSetup.EnsureCloseJoining(
+                    root,
+                    LocalPlayerProvisioningConsumerScope.Route);
                 PlayerSessionJoinTrigger join = root.AddComponent<PlayerSessionJoinTrigger>();
                 SetEnum(join, "scope", "Route");
                 GameObject requestBObject = new GameObject("Request Activity B");

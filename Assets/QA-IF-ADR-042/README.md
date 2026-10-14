@@ -15,6 +15,8 @@ The Manager-Provisioned endpoint remains in Persistent Content. The Scenario, Ro
 
 ## Certified transitions
 
-The scenario checks zero Players, `0 -> P1`, `P1 -> P1+P2`, public replacement of P1's Actor/Subject, `P1+P2 -> P2`, `P2 -> 0`, and `0 -> P1`. It validates Output/Assignment/occurrence identity, physical fallback and TargetGroup membership, current Observation uniqueness, and projected radius/weight. Cleanup uses public Leave/CloseJoining APIs and removes both QA-owned Keyboards.
+The scenario checks six checkpoints: zero Players, `0 -> P1`, `P1 -> P1+P2`, `P1+P2 -> P2`, `P2 -> 0`, and `0 -> P1`. It validates Output/Assignment/occurrence identity, physical fallback and TargetGroup membership, current Observation uniqueness, and projected radius/weight. Cleanup uses public Leave/CloseJoining APIs and removes both QA-owned Keyboards.
+
+Prepared-Actor replacement is outside this consumer scenario: I-08 assigns that low-level operation to the Actor Preparation owner because no supported public trigger exposes it. Its package-level coverage remains pending and is not claimed by IF-ADR-042.
 
 No Framework code is changed by this fixture.

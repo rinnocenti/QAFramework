@@ -2,6 +2,7 @@ using System.Collections;
 using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
 using Immersive.QaFramework.Certification;
+using Immersive.QaFramework.PlayerSession;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -18,7 +19,6 @@ namespace Immersive.QaFramework.IfAdr046
         [SerializeField, Min(1)] private int frameBudget = 600;
 
         private Keyboard _keyboard;
-        private IPlayerSessionScopedAccess _access;
         private int _initialPlayerInputCount;
         private string _firstCause = string.Empty;
         private bool _started;
@@ -47,13 +47,17 @@ namespace Immersive.QaFramework.IfAdr046
             for (int i = 0; i < Mathf.Max(1, frameBudget); i++)
             {
                 if (observer.TryGetSnapshot(out PlayerParticipationSnapshot ready) &&
-                    ready.IsInitialized && ready.JoinedCount == 0 && ready.ReservedCount == 0 &&
-                    !ready.JoiningOpen && observer.TryGetAccess(out _access, out _))
+                    ready.IsInitialized && ready.Slots.Count == 1 &&
+                    ready.JoinedCount == 0 && ready.ReservedCount == 0 &&
+                    !ready.JoiningOpen &&
+                    QaPlayerSessionCommandAccess.FindOpenJoining(observer)?.IsScopedAccessAvailable == true &&
+                    QaPlayerSessionCommandAccess.FindCloseJoining(observer)?.IsScopedAccessAvailable == true &&
+                    QaPlayerSessionCommandAccess.FindLeave(observer, ready.Slots[0].Profile)?.IsScopedAccessAvailable == true)
                     break;
                 yield return null;
             }
 
-            if (_access == null || !TryGetEmptyClosedSession(out PlayerParticipationSnapshot baseline))
+            if (!TryGetEmptyClosedSession(out PlayerParticipationSnapshot baseline))
             {
                 _firstCause = "BLOCKED: known initialized, empty, Joining-closed Session baseline was unavailable.";
                 yield return Finish();
@@ -61,8 +65,8 @@ namespace Immersive.QaFramework.IfAdr046
             }
 
             _initialPlayerInputCount = PlayerInput.all.Count;
-            PlayerParticipationOperationResult opened = _access.OpenJoining(
-                ScenarioId, "Open Joining for the I4 public boundary proof.");
+            PlayerParticipationOperationResult opened =
+                QaPlayerSessionCommandAccess.OpenJoining(observer);
             if (opened == null || !opened.Succeeded)
             {
                 _firstCause = "Public OpenJoining failed: " + (opened != null ? opened.ToDiagnosticString() : "null result");
@@ -123,9 +127,10 @@ namespace Immersive.QaFramework.IfAdr046
 
             // A typed Join proves Session admission only. Actor/gameplay readiness is reported separately.
             var slotId = joined.Slots[0].PlayerSlotId;
-            int slotRevision = joined.Slots[0].Revision;
-            SessionPlayerLeaveResult leave = _access.RequestLeave(new SessionPlayerLeaveRequest(
-                slotId, slotRevision, ScenarioId, "Restore the I4 empty Session baseline."));
+            PlayerSlotProfile slotProfile = joined.Slots[0].Profile;
+            SessionPlayerLeaveResult leave = QaPlayerSessionCommandAccess.Leave(
+                observer,
+                slotProfile);
             if (!IsLeaveConfirmed(leave))
                 AppendCleanupIssue("Public Leave did not confirm Slot/Host release: " + (leave != null ? leave.ToDiagnosticString() : "null result"));
 
@@ -137,12 +142,12 @@ namespace Immersive.QaFramework.IfAdr046
                 yield return null;
             }
 
-            if (_access != null && observer.TryGetSnapshot(out PlayerParticipationSnapshot beforeClose) &&
+            if (observer.TryGetSnapshot(out PlayerParticipationSnapshot beforeClose) &&
                 beforeClose.JoinedCount == 0 && beforeClose.ReservedCount == 0 && beforeClose.LeavingCount == 0 &&
                 beforeClose.JoiningOpen)
             {
-                PlayerParticipationOperationResult closed = _access.CloseJoining(
-                    ScenarioId, "Restore Joining-closed baseline after Leave.");
+                PlayerParticipationOperationResult closed =
+                    QaPlayerSessionCommandAccess.CloseJoining(observer);
                 if (closed == null || !closed.Succeeded)
                     AppendCleanupIssue("CloseJoining failed: " + (closed != null ? closed.ToDiagnosticString() : "null result"));
             }
@@ -152,23 +157,23 @@ namespace Immersive.QaFramework.IfAdr046
 
         private IEnumerator Finish()
         {
-            if (_access != null && TryGetEmptyClosedSession(out _) == false &&
+            if (TryGetEmptyClosedSession(out _) == false &&
                 observer != null && observer.TryGetSnapshot(out PlayerParticipationSnapshot snapshot) &&
                 snapshot.Slots.Count == 1 && snapshot.Slots[0].IsJoined)
             {
-                SessionPlayerLeaveResult leave = _access.RequestLeave(new SessionPlayerLeaveRequest(
-                    snapshot.Slots[0].PlayerSlotId, snapshot.Slots[0].Revision,
-                    ScenarioId, "Best-effort owned Player cleanup."));
+                SessionPlayerLeaveResult leave = QaPlayerSessionCommandAccess.Leave(
+                    observer,
+                    snapshot.Slots[0].Profile);
                 if (!IsLeaveConfirmed(leave))
                     AppendCleanupIssue("Leave request did not confirm Slot/Host release: " + (leave != null ? leave.ToDiagnosticString() : "null"));
             }
 
-            if (_access != null && observer != null && observer.TryGetSnapshot(out PlayerParticipationSnapshot beforeClose) &&
+            if (observer != null && observer.TryGetSnapshot(out PlayerParticipationSnapshot beforeClose) &&
                 beforeClose.JoinedCount == 0 && beforeClose.ReservedCount == 0 && beforeClose.LeavingCount == 0 &&
                 beforeClose.JoiningOpen)
             {
-                PlayerParticipationOperationResult closed = _access.CloseJoining(
-                    ScenarioId, "Restore Joining-closed baseline during cleanup.");
+                PlayerParticipationOperationResult closed =
+                    QaPlayerSessionCommandAccess.CloseJoining(observer);
                 if (closed == null || !closed.Succeeded)
                     AppendCleanupIssue("CloseJoining failed: " + (closed != null ? closed.ToDiagnosticString() : "null result"));
             }

@@ -9,6 +9,7 @@ using Immersive.Framework.PlayerParticipation;
 using Immersive.QaFramework.PlayerSession;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.QaFramework.IfAdr043;
+using Immersive.QaFramework.PlayerSession.Editor;
 using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -108,8 +109,13 @@ namespace Immersive.QaFramework.IfAdr043.Editor
             CreateScenarioPrefab(application, evidence, first, second);
 
             CreatePersistentScene(playerPrefab);
+            // NewScene(Single) invalidates the previously loaded Unity asset wrappers.
+            first = LoadAsset<PlayerSlotProfile>(Settings + "/PlayerSlot_QaIfAdr043_P1.asset");
+            second = LoadAsset<PlayerSlotProfile>(Settings + "/PlayerSlot_QaIfAdr043_P2.asset");
             ConfigureRouteScenario(LoadAsset<GameObject>(ScenarioPrefabPath),
-                LoadAsset<RouteAsset>(Settings + "/Route_QaIfAdr043.asset"));
+                LoadAsset<RouteAsset>(Settings + "/Route_QaIfAdr043.asset"),
+                first,
+                second);
             application = AssetDatabase.LoadAssetAtPath<GameApplicationAsset>(Settings + "/GameApplication_QaIfAdr043.asset");
             if (application == null)
                 throw new InvalidOperationException("The IF-ADR-043 Game Application asset could not be reloaded after scene authoring.");
@@ -408,7 +414,11 @@ namespace Immersive.QaFramework.IfAdr043.Editor
             finally { EditorSceneManager.RestoreSceneManagerSetup(previous); }
         }
 
-        private static void ConfigureRouteScenario(GameObject scenarioPrefab, RouteAsset route)
+        private static void ConfigureRouteScenario(
+            GameObject scenarioPrefab,
+            RouteAsset route,
+            PlayerSlotProfile first,
+            PlayerSlotProfile second)
         {
             SceneSetup[] previous = EditorSceneManager.GetSceneManagerSetup();
             try
@@ -423,6 +433,16 @@ namespace Immersive.QaFramework.IfAdr043.Editor
                 PlayerSessionJoinTrigger trigger = bindingRoot.GetComponent<PlayerSessionJoinTrigger>() ?? bindingRoot.AddComponent<PlayerSessionJoinTrigger>();
                 Set(observer, "scope", (int)LocalPlayerProvisioningConsumerScope.Route);
                 Set(trigger, "scope", (int)LocalPlayerProvisioningConsumerScope.Route);
+                QaPlayerSessionCommandTriggerSetup.EnsureLeave(
+                    bindingRoot,
+                    "Leave Player 1",
+                    LocalPlayerProvisioningConsumerScope.Route,
+                    first);
+                QaPlayerSessionCommandTriggerSetup.EnsureLeave(
+                    bindingRoot,
+                    "Leave Player 2",
+                    LocalPlayerProvisioningConsumerScope.Route,
+                    second);
                 foreach (QaIfAdr043PhysicalParticipationScenario old in scene.GetRootGameObjects()
                              .SelectMany(root => root.GetComponentsInChildren<QaIfAdr043PhysicalParticipationScenario>(true)).ToArray())
                     Object.DestroyImmediate(old.gameObject);
@@ -705,11 +725,20 @@ namespace Immersive.QaFramework.IfAdr043.Editor
                     throw new InvalidOperationException("IF-ADR-043 setup validation failed: Route content contribution requires an explicit local content ID.");
                 PlayerSessionObserver[] observers = scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<PlayerSessionObserver>(true)).ToArray();
                 PlayerSessionJoinTrigger[] triggers = scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<PlayerSessionJoinTrigger>(true)).ToArray();
+                PlayerSessionLeaveCommandTrigger[] leaveTriggers = scene.GetRootGameObjects()
+                    .SelectMany(root => root.GetComponentsInChildren<PlayerSessionLeaveCommandTrigger>(true)).ToArray();
                 QaIfAdr043PhysicalParticipationScenario[] scenarios = scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<QaIfAdr043PhysicalParticipationScenario>(true)).ToArray();
+                PlayerSlotProfile first = LoadAsset<PlayerSlotProfile>(Settings + "/PlayerSlot_QaIfAdr043_P1.asset");
+                PlayerSlotProfile second = LoadAsset<PlayerSlotProfile>(Settings + "/PlayerSlot_QaIfAdr043_P2.asset");
                 if (observers.Length != 1 || triggers.Length != 1 || scenarios.Length != 1 ||
                     observers[0].Scope != LocalPlayerProvisioningConsumerScope.Route || triggers[0].Scope != LocalPlayerProvisioningConsumerScope.Route ||
                     !observers[0].isActiveAndEnabled || !triggers[0].isActiveAndEnabled || !scenarios[0].isActiveAndEnabled)
                     throw new InvalidOperationException("IF-ADR-043 setup validation failed: Route scene requires exactly one enabled Route-scoped observer, trigger and scenario.");
+                if (leaveTriggers.Length != 2 || leaveTriggers.Any(leave => !leave.isActiveAndEnabled ||
+                        leave.Scope != LocalPlayerProvisioningConsumerScope.Route || leave.ExpectedLeaveOccurrenceRevision != -1) ||
+                    !leaveTriggers.Any(leave => leave.PlayerSlot == first) ||
+                    !leaveTriggers.Any(leave => leave.PlayerSlot == second))
+                    throw new InvalidOperationException("IF-ADR-043 setup validation failed: Route scene requires exactly two enabled Route-scoped Leave triggers, each bound to its exact QA Player Slot with current-occurrence resolution.");
                 SerializedObject serialized = new SerializedObject(scenarios[0]);
                 serialized.Update();
                 if (Require(serialized, "routeSessionObserver").objectReferenceValue != observers[0] ||

@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &1834905112
+--- !u!1 &935578847
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,10 +127,10 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1834905116}
-  - component: {fileID: 1834905115}
-  - component: {fileID: 1834905114}
-  - component: {fileID: 1834905113}
+  - component: {fileID: 935578851}
+  - component: {fileID: 935578850}
+  - component: {fileID: 935578849}
+  - component: {fileID: 935578848}
   m_Layer: 0
   m_Name: IF-ADR-042 Player Provisioning and Scenario
   m_TagString: Untagged
@@ -138,40 +138,40 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1834905113
+--- !u!114 &935578848
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1834905112}
+  m_GameObject: {fileID: 935578847}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f08330a12176478e8ac8020cd8e09feb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerProvisioningEndpointRegistration
-  provisioningAuthoring: {fileID: 1834905114}
---- !u!114 &1834905114
+  provisioningAuthoring: {fileID: 935578849}
+--- !u!114 &935578849
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1834905112}
+  m_GameObject: {fileID: 935578847}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 90eccb4f117c4d5b8a2ef8284db2ad36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.PlayerParticipation.LocalPlayerProvisioningAuthoring
-  playerInputManager: {fileID: 1834905115}
+  playerInputManager: {fileID: 935578850}
   localPlayerHostPrefab: {fileID: 3031915255742449409, guid: ea0174d9ccbfa9846997f2244122318e, type: 3}
---- !u!114 &1834905115
+--- !u!114 &935578850
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1834905112}
+  m_GameObject: {fileID: 935578847}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 621567455fd1c4ceb811cc8a00b6a1a5, type: 3}
@@ -193,7 +193,7 @@ MonoBehaviour:
       m_Name: 
       m_Type: 0
       m_ExpectedControlType: 
-      m_Id: cc86b80f-d2dc-43f4-bea8-8dd0c86fc9a9
+      m_Id: f17ba05c-eaef-4520-bd0c-76addfcb2818
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -209,13 +209,13 @@ MonoBehaviour:
     y: 0
     width: 1
     height: 1
---- !u!4 &1834905116
+--- !u!4 &935578851
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1834905112}
+  m_GameObject: {fileID: 935578847}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -228,4 +228,4 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1834905116}
+  - {fileID: 935578851}

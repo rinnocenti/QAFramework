@@ -13,6 +13,7 @@ using Immersive.Framework.PlayerParticipation;
 using Immersive.Framework.PlayerSlots;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.QaFramework.IfAdr042;
+using Immersive.QaFramework.PlayerSession.Editor;
 using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -54,7 +55,6 @@ namespace Immersive.QaFramework.IfAdr042.Editor
             QaIfAdr042SharedGroupEvidence evidence = CreateAsset<QaIfAdr042SharedGroupEvidence>(Settings + "/QaIfAdr042SharedGroupEvidence.asset");
             ActorProfile p1Actor = CreateActorProfile("Actor_QaIfAdr042_P1", "qa-if-adr-042.p1.default", "QA Player 1");
             ActorProfile p2Actor = CreateActorProfile("Actor_QaIfAdr042_P2", "qa-if-adr-042.p2.default", "QA Player 2");
-            ActorProfile p1Replacement = CreateActorProfile("Actor_QaIfAdr042_P1_Replacement", "qa-if-adr-042.p1.replacement", "QA Player 1 Replacement");
             PlayerSlotProfile p1 = CreateSlot("PlayerSlot_QaIfAdr042_P1", "player.1", "Player 1", p1Actor);
             PlayerSlotProfile p2 = CreateSlot("PlayerSlot_QaIfAdr042_P2", "player.2", "Player 2", p2Actor);
 
@@ -92,7 +92,6 @@ namespace Immersive.QaFramework.IfAdr042.Editor
             evidence = LoadAsset<QaIfAdr042SharedGroupEvidence>(Settings + "/QaIfAdr042SharedGroupEvidence.asset");
             p1 = LoadAsset<PlayerSlotProfile>(Settings + "/PlayerSlot_QaIfAdr042_P1.asset");
             p2 = LoadAsset<PlayerSlotProfile>(Settings + "/PlayerSlot_QaIfAdr042_P2.asset");
-            p1Replacement = LoadAsset<ActorProfile>(Players + "/Actor_QaIfAdr042_P1_Replacement.asset");
             assignment = LoadAsset<SessionCameraAssignmentAsset>(Settings + "/CameraAssignment_QaIfAdr042_SharedGroup.asset");
             hostPrefab = LoadAsset<GameObject>(Players + "/PF_LocalPlayerHost_QaIfAdr042.prefab");
             outputPrefab = LoadAsset<GameObject>(Camera + "/PF_CameraOutput_QaIfAdr042_Shared.prefab");
@@ -105,11 +104,10 @@ namespace Immersive.QaFramework.IfAdr042.Editor
             evidence = LoadAsset<QaIfAdr042SharedGroupEvidence>(Settings + "/QaIfAdr042SharedGroupEvidence.asset");
             p1 = LoadAsset<PlayerSlotProfile>(Settings + "/PlayerSlot_QaIfAdr042_P1.asset");
             p2 = LoadAsset<PlayerSlotProfile>(Settings + "/PlayerSlot_QaIfAdr042_P2.asset");
-            p1Replacement = LoadAsset<ActorProfile>(Players + "/Actor_QaIfAdr042_P1_Replacement.asset");
             assignment = LoadAsset<SessionCameraAssignmentAsset>(Settings + "/CameraAssignment_QaIfAdr042_SharedGroup.asset");
             hostPrefab = LoadAsset<GameObject>(Players + "/PF_LocalPlayerHost_QaIfAdr042.prefab");
             GameObject scenarioPrefab = CreateScenarioPrefab(
-                application, evidence, p1, p2, p1Replacement, assignment);
+                application, evidence, p1, p2, assignment);
             AssetDatabase.SaveAssets();
             scenarioPrefab = LoadAsset<GameObject>(ScenarioPrefabPath);
             hostPrefab = LoadAsset<GameObject>(Players + "/PF_LocalPlayerHost_QaIfAdr042.prefab");
@@ -117,10 +115,9 @@ namespace Immersive.QaFramework.IfAdr042.Editor
             evidence = LoadAsset<QaIfAdr042SharedGroupEvidence>(Settings + "/QaIfAdr042SharedGroupEvidence.asset");
             p1 = LoadAsset<PlayerSlotProfile>(Settings + "/PlayerSlot_QaIfAdr042_P1.asset");
             p2 = LoadAsset<PlayerSlotProfile>(Settings + "/PlayerSlot_QaIfAdr042_P2.asset");
-            p1Replacement = LoadAsset<ActorProfile>(Players + "/Actor_QaIfAdr042_P1_Replacement.asset");
             assignment = LoadAsset<SessionCameraAssignmentAsset>(Settings + "/CameraAssignment_QaIfAdr042_SharedGroup.asset");
             CreatePersistentScene(hostPrefab);
-            AddScenarioToRouteScene(scenarioPrefab);
+            AddScenarioToRouteScene(scenarioPrefab, p1, p2);
             AssetDatabase.SaveAssets();
             SetPersistentScene();
             AddScenesToBuildSettings();
@@ -499,7 +496,7 @@ namespace Immersive.QaFramework.IfAdr042.Editor
 
         private static GameObject CreateScenarioPrefab(GameApplicationAsset application,
             QaIfAdr042SharedGroupEvidence evidence, PlayerSlotProfile p1,
-            PlayerSlotProfile p2, ActorProfile replacement, SessionCameraAssignmentAsset assignment)
+            PlayerSlotProfile p2, SessionCameraAssignmentAsset assignment)
         {
             var root = new GameObject("IF-ADR-042 SharedGroup Certification Scenario");
             try
@@ -509,7 +506,6 @@ namespace Immersive.QaFramework.IfAdr042.Editor
                 Set(scenario, "evidence", evidence);
                 Set(scenario, "player1", p1);
                 Set(scenario, "player2", p2);
-                Set(scenario, "player1Replacement", replacement);
                 Set(scenario, "assignment", assignment);
                 var serialized = new SerializedObject(scenario);
                 serialized.Update();
@@ -547,7 +543,10 @@ namespace Immersive.QaFramework.IfAdr042.Editor
             finally { EditorSceneManager.RestoreSceneManagerSetup(previous); }
         }
 
-        private static void AddScenarioToRouteScene(GameObject scenarioPrefab)
+        private static void AddScenarioToRouteScene(
+            GameObject scenarioPrefab,
+            PlayerSlotProfile player1,
+            PlayerSlotProfile player2)
         {
             SceneSetup[] previous = EditorSceneManager.GetSceneManagerSetup();
             try
@@ -563,6 +562,22 @@ namespace Immersive.QaFramework.IfAdr042.Editor
                 Set(observer, "scope", LocalPlayerProvisioningConsumerScope.Route);
                 PlayerSessionJoinTrigger trigger = owner.GetComponent<PlayerSessionJoinTrigger>() ?? owner.AddComponent<PlayerSessionJoinTrigger>();
                 Set(trigger, "scope", LocalPlayerProvisioningConsumerScope.Route);
+                QaPlayerSessionCommandTriggerSetup.EnsureOpenJoining(
+                    owner,
+                    LocalPlayerProvisioningConsumerScope.Route);
+                QaPlayerSessionCommandTriggerSetup.EnsureCloseJoining(
+                    owner,
+                    LocalPlayerProvisioningConsumerScope.Route);
+                QaPlayerSessionCommandTriggerSetup.EnsureLeave(
+                    owner,
+                    "Leave Player 1",
+                    LocalPlayerProvisioningConsumerScope.Route,
+                    player1);
+                QaPlayerSessionCommandTriggerSetup.EnsureLeave(
+                    owner,
+                    "Leave Player 2",
+                    LocalPlayerProvisioningConsumerScope.Route,
+                    player2);
                 QaIfAdr042SharedGroupScenario[] oldScenarios = FindComponents<QaIfAdr042SharedGroupScenario>(scene);
                 foreach (QaIfAdr042SharedGroupScenario oldScenario in oldScenarios)
                     Object.DestroyImmediate(oldScenario.gameObject);
@@ -635,7 +650,6 @@ namespace Immersive.QaFramework.IfAdr042.Editor
             PlayerSessionProfile session = LoadAsset<PlayerSessionProfile>(Settings + "/PlayerSession_QaIfAdr042.asset");
             PlayerSlotProfile p1 = LoadAsset<PlayerSlotProfile>(Settings + "/PlayerSlot_QaIfAdr042_P1.asset");
             PlayerSlotProfile p2 = LoadAsset<PlayerSlotProfile>(Settings + "/PlayerSlot_QaIfAdr042_P2.asset");
-            ActorProfile replacement = LoadAsset<ActorProfile>(Players + "/Actor_QaIfAdr042_P1_Replacement.asset");
             SessionCameraAssignmentAsset assignment = LoadAsset<SessionCameraAssignmentAsset>(Settings + "/CameraAssignment_QaIfAdr042_SharedGroup.asset");
             CameraOutputDefinition outputDefinition = LoadAsset<CameraOutputDefinition>(Camera + "/CameraOutput_QaIfAdr042_Shared.asset");
             GameObject outputPrefab = LoadAsset<GameObject>(Camera + "/PF_CameraOutput_QaIfAdr042_Shared.prefab");
@@ -649,8 +663,7 @@ namespace Immersive.QaFramework.IfAdr042.Editor
                 session.SupportedSlots[0] != p1 || session.SupportedSlots[1] != p2 ||
                 session.HostProvisioning != PlayerHostProvisioningMode.ManagerProvisioned ||
                 session.ActorResolutionPolicy != PlayerActorResolutionPolicy.ResolveConfiguredDefault ||
-                p1.DefaultActorProfile == null || p2.DefaultActorProfile == null ||
-                replacement.ActorKind != ActorKind.Player || replacement.ActorRole != ActorRole.Protagonist)
+                p1.DefaultActorProfile == null || p2.DefaultActorProfile == null)
                 throw new InvalidOperationException("IF-ADR-042 setup validation failed: Player Session, ordered Slots or Actor Profiles are incomplete.");
 
             if (application.StartupRoute != startupRoute || startupRoute.StartupActivity != startupActivity ||
@@ -732,8 +745,8 @@ namespace Immersive.QaFramework.IfAdr042.Editor
                 !CameraRigComposerApplyRebuildUtility.Validate(composer).Succeeded)
                 throw new InvalidOperationException("IF-ADR-042 setup validation failed: Group rig materialization/probe is invalid. " + issue);
 
-            ValidatePersistentScene(application, session, hostPrefab, p1, p2, replacement, assignment, evidence);
-            ValidateScenarioPrefab(scenarioPrefab, application, p1, p2, replacement, assignment, evidence);
+            ValidatePersistentScene(application, session, hostPrefab, p1, p2, assignment, evidence);
+            ValidateScenarioPrefab(scenarioPrefab, application, p1, p2, assignment, evidence);
             // Scene restoration can invalidate Unity wrappers returned through another asset.
             // Validate against the freshly loaded canonical assets and separately assert that
             // the Application -> Route -> Activity chain still points at those assets.
@@ -749,7 +762,7 @@ namespace Immersive.QaFramework.IfAdr042.Editor
         }
 
         private static void ValidateScenarioPrefab(GameObject prefab, GameApplicationAsset application,
-            PlayerSlotProfile p1, PlayerSlotProfile p2, ActorProfile replacement,
+            PlayerSlotProfile p1, PlayerSlotProfile p2,
             SessionCameraAssignmentAsset assignment, QaIfAdr042SharedGroupEvidence evidence)
         {
             QaIfAdr042SharedGroupScenario[] scenarios = prefab.GetComponentsInChildren<QaIfAdr042SharedGroupScenario>(true);
@@ -762,7 +775,6 @@ namespace Immersive.QaFramework.IfAdr042.Editor
             RequireReference(serialized, "evidence", evidence);
             RequireReference(serialized, "player1", p1);
             RequireReference(serialized, "player2", p2);
-            RequireReference(serialized, "player1Replacement", replacement);
             RequireReference(serialized, "assignment", assignment);
             if (Require(serialized, "routeSessionObserver").objectReferenceValue != null ||
                 Require(serialized, "joinTrigger").objectReferenceValue != null)
@@ -779,7 +791,15 @@ namespace Immersive.QaFramework.IfAdr042.Editor
                 RouteContentContribution[] contributions = FindComponents<RouteContentContribution>(scene);
                 PlayerSessionObserver[] observers = FindComponents<PlayerSessionObserver>(scene);
                 PlayerSessionJoinTrigger[] triggers = FindComponents<PlayerSessionJoinTrigger>(scene);
+                PlayerSessionOpenJoiningCommandTrigger[] openCommands =
+                    FindComponents<PlayerSessionOpenJoiningCommandTrigger>(scene);
+                PlayerSessionCloseJoiningCommandTrigger[] closeCommands =
+                    FindComponents<PlayerSessionCloseJoiningCommandTrigger>(scene);
+                PlayerSessionLeaveCommandTrigger[] leaveCommands =
+                    FindComponents<PlayerSessionLeaveCommandTrigger>(scene);
                 QaIfAdr042SharedGroupScenario[] scenarios = FindComponents<QaIfAdr042SharedGroupScenario>(scene);
+                PlayerSlotProfile player1 = LoadAsset<PlayerSlotProfile>(Settings + "/PlayerSlot_QaIfAdr042_P1.asset");
+                PlayerSlotProfile player2 = LoadAsset<PlayerSlotProfile>(Settings + "/PlayerSlot_QaIfAdr042_P2.asset");
                 var issues = new List<string>();
                 if (contributions.Length != 1)
                     issues.Add("contributions=" + contributions.Length + " (expected exactly 1)");
@@ -800,6 +820,44 @@ namespace Immersive.QaFramework.IfAdr042.Editor
                          triggers[0].Scope != LocalPlayerProvisioningConsumerScope.Route)
                     issues.Add("the sole Join trigger is null/disabled or has scope='" +
                         (triggers[0] != null ? triggers[0].Scope.ToString() : "<null>") + "' (expected enabled Route)");
+
+                if (openCommands.Length != 1)
+                    issues.Add("openJoiningCommands=" + openCommands.Length + " (expected exactly 1)");
+                else if (openCommands[0] == null || !openCommands[0].isActiveAndEnabled ||
+                         openCommands[0].Scope != LocalPlayerProvisioningConsumerScope.Route)
+                    issues.Add("the sole Open Joining command is null/disabled or has an invalid Route scope");
+                else if (!openCommands[0].TryValidateConfiguration(out string openIssue))
+                    issues.Add("the sole Open Joining command is invalid: " + openIssue);
+
+                if (closeCommands.Length != 1)
+                    issues.Add("closeJoiningCommands=" + closeCommands.Length + " (expected exactly 1)");
+                else if (closeCommands[0] == null || !closeCommands[0].isActiveAndEnabled ||
+                         closeCommands[0].Scope != LocalPlayerProvisioningConsumerScope.Route)
+                    issues.Add("the sole Close Joining command is null/disabled or has an invalid Route scope");
+                else if (!closeCommands[0].TryValidateConfiguration(out string closeIssue))
+                    issues.Add("the sole Close Joining command is invalid: " + closeIssue);
+
+                if (leaveCommands.Length != 2)
+                    issues.Add("leaveCommands=" + leaveCommands.Length + " (expected exactly 2, one per Player Slot)");
+                else
+                {
+                    PlayerSessionLeaveCommandTrigger[] player1Leaves =
+                        leaveCommands.Where(candidate => candidate != null && candidate.PlayerSlot == player1).ToArray();
+                    PlayerSessionLeaveCommandTrigger[] player2Leaves =
+                        leaveCommands.Where(candidate => candidate != null && candidate.PlayerSlot == player2).ToArray();
+                    if (player1Leaves.Length != 1)
+                        issues.Add("Route Leave commands targeting P1=" + player1Leaves.Length + " (expected exactly 1)");
+                    if (player2Leaves.Length != 1)
+                        issues.Add("Route Leave commands targeting P2=" + player2Leaves.Length + " (expected exactly 1)");
+                    foreach (PlayerSessionLeaveCommandTrigger leave in leaveCommands)
+                    {
+                        if (leave == null || !leave.isActiveAndEnabled ||
+                            leave.Scope != LocalPlayerProvisioningConsumerScope.Route)
+                            issues.Add("a Route Leave command is null/disabled or has an invalid Route scope");
+                        else if (!leave.TryValidateConfiguration(out string leaveIssue))
+                            issues.Add("a Route Leave command is invalid: " + leaveIssue);
+                    }
+                }
 
                 if (scenarios.Length != 1)
                     issues.Add("scenarios=" + scenarios.Length + " (expected exactly 1)");
@@ -825,7 +883,7 @@ namespace Immersive.QaFramework.IfAdr042.Editor
 
         private static void ValidatePersistentScene(GameApplicationAsset application,
             PlayerSessionProfile session, GameObject hostPrefab, PlayerSlotProfile p1,
-            PlayerSlotProfile p2, ActorProfile replacement, SessionCameraAssignmentAsset assignment,
+            PlayerSlotProfile p2, SessionCameraAssignmentAsset assignment,
             QaIfAdr042SharedGroupEvidence evidence)
         {
             SceneSetup[] previousSetup = EditorSceneManager.GetSceneManagerSetup();

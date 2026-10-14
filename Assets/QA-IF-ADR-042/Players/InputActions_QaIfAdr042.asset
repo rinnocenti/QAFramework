@@ -14,20 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionAsset
   m_ActionMaps:
   - m_Name: Player
-    m_Id: b9c2e489-d48e-4327-96cf-7c4b6a44d720
+    m_Id: 5a02cd54-72b2-4256-a354-c9cf2ef3ca35
     m_Asset: {fileID: 11400000}
     m_Actions:
     - m_Name: Move
       m_Type: 0
       m_ExpectedControlType: Vector2
-      m_Id: 245f92df-0af6-4131-ab54-c94b70b50dec
+      m_Id: 6d6801ab-fe7d-4469-b585-11c2b71628c5
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Bindings:
     - m_Name: 2DVector
-      m_Id: 7ab076cd-9a01-41d1-ae53-8b582cdeab12
+      m_Id: c7314ca1-dabb-4ada-bd92-ff4691e58928
       m_Path: 2DVector
       m_Interactions: 
       m_Processors: 
@@ -35,7 +35,7 @@ MonoBehaviour:
       m_Action: Move
       m_Flags: 4
     - m_Name: Up
-      m_Id: 5e40b062-ded4-4645-a8d7-2c0dee5afbfa
+      m_Id: 06fd5ded-842f-4c2a-a720-8b4d77def639
       m_Path: <Keyboard>/w
       m_Interactions: 
       m_Processors: 
@@ -43,7 +43,7 @@ MonoBehaviour:
       m_Action: Move
       m_Flags: 8
     - m_Name: Down
-      m_Id: ae541a0b-667b-4fec-91f3-ad8c994ce1f5
+      m_Id: de6adea3-ca18-4c11-b97d-939c305ae884
       m_Path: <Keyboard>/s
       m_Interactions: 
       m_Processors: 
@@ -51,7 +51,7 @@ MonoBehaviour:
       m_Action: Move
       m_Flags: 8
     - m_Name: Left
-      m_Id: 938cfb1c-1ba1-4310-b445-83481e85da57
+      m_Id: 546bbd21-4f46-4b9b-9493-eb282d0de753
       m_Path: <Keyboard>/a
       m_Interactions: 
       m_Processors: 
@@ -59,7 +59,7 @@ MonoBehaviour:
       m_Action: Move
       m_Flags: 8
     - m_Name: Right
-      m_Id: 36774cdc-1859-4d8f-8859-167dd3b7cf80
+      m_Id: 08fa7494-47cc-468a-8245-d0a50d624269
       m_Path: <Keyboard>/d
       m_Interactions: 
       m_Processors: 

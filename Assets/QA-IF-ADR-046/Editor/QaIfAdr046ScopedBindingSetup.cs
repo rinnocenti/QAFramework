@@ -5,8 +5,10 @@ using Immersive.Framework.ActivityFlow;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.PlayerParticipation;
+using Immersive.Framework.PlayerSlots;
 using Immersive.Framework.RouteLifecycle;
 using Immersive.QaFramework.IfAdr046;
+using Immersive.QaFramework.PlayerSession.Editor;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -202,6 +204,19 @@ namespace Immersive.QaFramework.IfAdr046.Editor
 
             if (readinessObservers.Length == 0) observers[0].gameObject.AddComponent<ActivityReadinessEvents>();
             if (requireJoin) ConfigureJoinTrigger(observers[0].gameObject.AddComponent<PlayerSessionJoinTrigger>(), LocalPlayerProvisioningConsumerScope.Activity);
+            PlayerSlotProfile playerSlot = Load<GameApplicationAsset>(AppPath)
+                .DefaultPlayerSessionProfile.SupportedSlots[0];
+            QaPlayerSessionCommandTriggerSetup.EnsureOpenJoining(
+                observers[0].gameObject,
+                LocalPlayerProvisioningConsumerScope.Activity);
+            QaPlayerSessionCommandTriggerSetup.EnsureCloseJoining(
+                observers[0].gameObject,
+                LocalPlayerProvisioningConsumerScope.Activity);
+            QaPlayerSessionCommandTriggerSetup.EnsureLeave(
+                observers[0].gameObject,
+                "Leave Player 1",
+                LocalPlayerProvisioningConsumerScope.Activity,
+                playerSlot);
             SaveScene(scene, path);
         }
 

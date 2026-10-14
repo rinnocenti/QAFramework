@@ -14,20 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionAsset
   m_ActionMaps:
   - m_Name: Player
-    m_Id: b044a4c5-68c6-4680-add5-8725defde90d
+    m_Id: 6df95e68-5973-43c4-b3e4-8bd46b084aea
     m_Asset: {fileID: 11400000}
     m_Actions:
     - m_Name: Move
       m_Type: 0
       m_ExpectedControlType: Vector2
-      m_Id: 79f61633-bfac-43b6-9cdd-a605ad09e111
+      m_Id: f8845290-69a6-4b59-87d2-d3b6c0c4c17a
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Bindings:
     - m_Name: 2DVector
-      m_Id: 84d58041-c5ee-4f35-a348-ff1b15ee48a2
+      m_Id: 455a9c4a-523f-484c-b2c8-9b6a5511234d
       m_Path: 2DVector
       m_Interactions: 
       m_Processors: 
@@ -35,7 +35,7 @@ MonoBehaviour:
       m_Action: Move
       m_Flags: 4
     - m_Name: Up
-      m_Id: 43861338-92ea-4fb5-b2e9-7c64185837a1
+      m_Id: da2ed0fc-ec9b-4695-93c8-8eb087d23d8c
       m_Path: <Keyboard>/w
       m_Interactions: 
       m_Processors: 
@@ -43,7 +43,7 @@ MonoBehaviour:
       m_Action: Move
       m_Flags: 8
     - m_Name: Down
-      m_Id: 390731e1-603c-4850-bb47-f9bb85093c0c
+      m_Id: 32ca30fb-bc11-46b5-a908-a0d2ff8d51ee
       m_Path: <Keyboard>/s
       m_Interactions: 
       m_Processors: 
@@ -51,7 +51,7 @@ MonoBehaviour:
       m_Action: Move
       m_Flags: 8
     - m_Name: Left
-      m_Id: efa87386-988e-4fd9-b716-4365cd1c08e8
+      m_Id: 1d7af55f-aedd-4fb5-96ee-c22e54577abc
       m_Path: <Keyboard>/a
       m_Interactions: 
       m_Processors: 
@@ -59,7 +59,7 @@ MonoBehaviour:
       m_Action: Move
       m_Flags: 8
     - m_Name: Right
-      m_Id: 41d51d29-da91-45df-92c0-cfd097276ab4
+      m_Id: c0d6f276-0a37-44a3-a6e8-a19b2606ea95
       m_Path: <Keyboard>/d
       m_Interactions: 
       m_Processors: 
@@ -67,13 +67,13 @@ MonoBehaviour:
       m_Action: Move
       m_Flags: 8
   - m_Name: Global
-    m_Id: bf7aa1e6-a88a-418d-9468-ed2179366c8e
+    m_Id: 9d83f3f2-f0c0-428e-a77e-4a5d28904aaa
     m_Asset: {fileID: 11400000}
     m_Actions:
     - m_Name: Pause
       m_Type: 1
       m_ExpectedControlType: 
-      m_Id: 311611ad-e042-4a80-88f3-e304db6f3b1c
+      m_Id: 564d4247-3df8-4c80-8fe6-e0e0274291cc
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
