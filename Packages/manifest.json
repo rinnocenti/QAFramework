@@ -1,10 +1,11 @@
 {
   "dependencies": {
-    "com.immersive.audio": "file:C:/Projetos/ImmersivePackages/com.immersive.audio",
-    "com.immersive.foundation": "file:C:/Projetos/ImmersivePackages/com.immersive.foundation",
-    "com.immersive.framework": "file:C:/Projetos/ImmersivePackages/com.immersive.framework",
+    "com.immersive.audio": "https://github.com/ImmersiveGames/com.immersive.audio.git",
+    "com.immersive.composition": "https://github.com/ImmersiveGames/com.immersive.composition.git",
+    "com.immersive.foundation": "https://github.com/ImmersiveGames/com.immersive.foundation.git",
+    "com.immersive.framework": "https://github.com/ImmersiveGames/com.immersive.framework",
     "com.immersive.logging": "https://github.com/ImmersiveGames/com.immersive.logging.git",
-    "com.immersive.pooling": "file:C:/Projetos/ImmersivePackages/com.immersive.pooling",
+    "com.immersive.pooling": "https://github.com/ImmersiveGames/com.immersive.pooling.git",
     "com.unity.addressables": "3.1.0",
     "com.unity.ai.assistant": "2.13.0-pre.2",
     "com.unity.ai.inference": "2.6.1",
@@ -54,6 +55,16 @@
     "com.unity.modules.xr": "1.0.0"
   },
   "testables": [
-    "com.immersive.framework"
+    "com.immersive.framework",
+    "com.immersive.composition"
+  ],
+  "scopedRegistries": [
+    {
+      "name": "OpenUPM",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.immersive"
+      ]
+    }
   ]
 }
