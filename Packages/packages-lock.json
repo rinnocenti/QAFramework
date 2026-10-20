@@ -24,17 +24,16 @@
       "hash": "86b5e17d69ffa72b302f323628ec494362702f42"
     },
     "com.immersive.framework": {
-      "version": "https://github.com/ImmersiveGames/com.immersive.framework",
+      "version": "file:C:/Projetos/ImmersivePackages/com.immersive.framework",
       "depth": 0,
-      "source": "git",
+      "source": "local",
       "dependencies": {
         "com.immersive.composition": "0.1.0-preview.3",
         "com.immersive.foundation": "0.2.3",
         "com.immersive.logging": "0.2.4",
         "com.unity.cinemachine": "3.1.7",
         "com.unity.inputsystem": "1.19.0"
-      },
-      "hash": "431251f0805ca4e176ec7e898d0276a547fb7e6d"
+      }
     },
     "com.immersive.logging": {
       "version": "https://github.com/ImmersiveGames/com.immersive.logging.git",
