@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ce6d27d442ac76449f283afbc33d04f, type: 3}
+  m_Name: GameApplication_QaIfAdr014
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.Authoring.GameApplicationAsset
+  applicationName: IF-ADR-014 Object Entry Recognition Demo
+  startupRoute: {fileID: 11400000, guid: 4d4c84172028bf34dac9260b8d7ab315, type: 2}
+  playerSessionEnabled: 0
+  defaultPlayerSessionProfile: {fileID: 0}
+  playerActorSelectionDuplicatePolicy: 10
+  progressionSaveEnabled: 0
+  defaultProgressionSaveProfile: {fileID: 0}
+  cameraSession:
+    outputPrefabs:
+    - {fileID: 627951520136573394, guid: a113f6097d4b48eaa125397407f8da62, type: 3}
+  startupCameraAssignments: []
+  persistentContent:
+    scenePath: Assets/QA-IF-ADR-014/Generated/Scenes/QA_IF_ADR_014_Persistent.unity
+    sceneName: QA_IF_ADR_014_Persistent
+    containerScene: {fileID: 102900000, guid: 4af50b813f520e443aa6d8f059b5d4b2, type: 3}
+  validationMode: 1
