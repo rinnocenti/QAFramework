@@ -294,11 +294,12 @@ namespace Immersive.QaFramework.IfAdr014.Editor
                     throw new InvalidOperationException("Generated scene has unsaved changes; refusing to modify it: " + scenePath);
 
                 ObjectEntryDeclaration[] declarations = FindSceneComponents<ObjectEntryDeclaration>(scene);
+                ObjectEntryId expectedId = ObjectEntryId.From(expectedObjectEntryId);
                 ObjectEntryDeclaration selected = null;
                 for (int index = 0; index < declarations.Length; index++)
                 {
                     if (!declarations[index].TryGetObjectEntryId(out ObjectEntryId id) ||
-                        id.StableText != expectedObjectEntryId)
+                        id != expectedId)
                         continue;
                     if (selected != null)
                         throw new InvalidOperationException("Generated scene contains duplicate target Object Entry IDs: " + scenePath);
