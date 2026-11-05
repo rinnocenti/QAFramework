@@ -267,21 +267,53 @@ namespace Immersive.QaFramework.IfAdr014
                 yield return null;
             }
 
+            ObjectEntryId restartedActivityId = ObjectEntryId.From(ActivityEntryId);
+            GameObject restartedActivityRoot = restartedActivityDeclaration != null
+                ? restartedActivityDeclaration.gameObject
+                : null;
+            QaIfAdr014CompositionWitness.DestructionEvidence previousActivityEvidence = null;
+            bool previousEvidenceMatchesOldRoot = _restartedActivityRootToCleanup != null &&
+                QaIfAdr014CompositionWitness.TryGetDestructionEvidence(
+                    restartedActivityId,
+                    _restartedActivityRootToCleanup,
+                    out previousActivityEvidence) &&
+                object.ReferenceEquals(previousActivityEvidence.Root, _restartedActivityRootToCleanup);
+            QaIfAdr014CompositionWitness.DestructionEvidence prematureNewActivityEvidence = null;
+            bool newOccurrenceHasNoPriorDestructionEvidence = restartedActivityRoot != null &&
+                !QaIfAdr014CompositionWitness.TryGetDestructionEvidence(
+                    restartedActivityId,
+                    restartedActivityRoot,
+                    out prematureNewActivityEvidence);
+
             bool replacementActivityOccurrenceCommitted =
                 restartedActivityBinding != null && restartedActivityDeclaration != null &&
                 restartedActivityColliders != null && restartedActivityColliders.Length == 2 &&
-                restartedActivityDeclaration.gameObject != _restartedActivityRootToCleanup &&
+                !object.ReferenceEquals(
+                    restartedActivityRoot,
+                    _restartedActivityRootToCleanup) &&
                 IsResolved(restartedActivityReady, ActivityEntryId, restartedActivityDeclaration.gameObject) &&
                 restartedActivityDeclaration.GetComponent<ObjectEntryCompositionAuthoring>() != null &&
                 restartedActivityDeclaration.GetComponentInChildren<QaIfAdr014CompositionWitness>(true)
-                    is { isActiveAndEnabled: true };
+                    is { isActiveAndEnabled: true } &&
+                previousEvidenceMatchesOldRoot &&
+                previousActivityEvidence.PartWasDestroyed &&
+                newOccurrenceHasNoPriorDestructionEvidence;
             RecordCompositionCase(
                 "activity-restart-readmitted-new-physical-occurrence",
                 replacementActivityOccurrenceCommitted,
                 "oldRootStillLive='" + (_restartedActivityRootToCleanup != null) +
                 "' newRoot='" + (restartedActivityDeclaration != null ? restartedActivityDeclaration.name : "<missing>") +
+                "' oldRootInstanceId='" + (_restartedActivityRootToCleanup != null
+                    ? _restartedActivityRootToCleanup.GetInstanceID().ToString() : "<missing>") +
+                "' newRootInstanceId='" + (restartedActivityRoot != null
+                    ? restartedActivityRoot.GetInstanceID().ToString() : "<missing>") +
                 "' sameObjectEntryId='" + (restartedActivityReady.ObjectEntryId.IsValid &&
-                    restartedActivityReady.ObjectEntryId == ObjectEntryId.From(ActivityEntryId)) + "'");
+                    restartedActivityReady.ObjectEntryId == restartedActivityId) +
+                "' previousEvidenceMatchesOldRoot='" + previousEvidenceMatchesOldRoot +
+                "' previousPartDestroyed='" + (previousActivityEvidence?.PartWasDestroyed ?? false) +
+                "' newOccurrenceHasNoPriorEvidence='" + newOccurrenceHasNoPriorDestructionEvidence +
+                "' prematureEvidenceRootMatchesNewRoot='" + (prematureNewActivityEvidence != null &&
+                    object.ReferenceEquals(prematureNewActivityEvidence.Root, restartedActivityRoot)) + "'");
             if (!replacementActivityOccurrenceCommitted)
             {
                 Finish(false, "Activity Restart did not admit a new physical Object Entry occurrence.");
@@ -396,40 +428,100 @@ namespace Immersive.QaFramework.IfAdr014
                 "routeTargetStillLive='" + (_routeCollider != null) +
                 "' routeTargetId='" + IdText(routeAfterRelease) + "'");
 
+            ObjectEntryDeclaration activityDeclaration = _activityDeclaration;
+            GameObject activityRoot = activityDeclaration != null ? activityDeclaration.gameObject : null;
+            ObjectEntryId activityObjectEntryId = ObjectEntryId.From(ActivityEntryId);
+            QaIfAdr014CompositionWitness.DestructionEvidence activityEvidence = null;
+            bool activityEvidenceFound = activityRoot != null &&
+                QaIfAdr014CompositionWitness.TryGetDestructionEvidence(
+                    activityObjectEntryId,
+                    activityRoot,
+                    out activityEvidence);
+            bool activityRootMatches = activityEvidenceFound &&
+                object.ReferenceEquals(activityEvidence.Root, activityRoot);
+            bool activityDeclarationMatches = activityEvidenceFound &&
+                object.ReferenceEquals(activityEvidence.Declaration, activityDeclaration);
+            bool activityIdentityMatches = activityEvidenceFound &&
+                activityEvidence.ObjectEntryId == activityObjectEntryId;
+            bool activityPartDestroyed = activityEvidenceFound && activityEvidence.PartWasDestroyed;
+            bool activityWitnessAbsent = activityDeclaration != null &&
+                activityDeclaration.GetComponentInChildren<QaIfAdr014CompositionWitness>(true) == null;
             bool activityCompositionReleased =
-                QaIfAdr014CompositionWitness.TryGetDestructionEvidence(ActivityEntryId, out var activityEvidence) &&
-                activityEvidence.Root == _activityDeclaration.gameObject &&
-                activityEvidence.Declaration == _activityDeclaration &&
-                activityEvidence.ObjectEntryId == ActivityEntryId &&
+                activityEvidenceFound &&
+                activityRootMatches &&
+                activityDeclarationMatches &&
+                activityIdentityMatches &&
+                activityEvidence.PartWasSubordinate &&
+                activityPartDestroyed &&
                 activityEvidence.RootWasLive &&
                 activityEvidence.DeclarationWasIntact &&
                 activityEvidence.OwnerSceneWasLoaded &&
-                _activityDeclaration.GetComponentInChildren<QaIfAdr014CompositionWitness>(true) == null;
+                activityWitnessAbsent;
             RecordCompositionCase(
                 _recordingActivityRestartRelease
                     ? "activity-restart-composition-released-before-reentry"
                     : "activity-composition-released-before-scene-unload",
                 activityCompositionReleased,
-                "rootStillSame='" + (_activityDeclaration != null && _activityDeclaration.gameObject == activityEvidence?.Root) +
+                "evidenceFound='" + activityEvidenceFound +
+                "' rootSame='" + activityRootMatches +
+                "' rootInstanceId='" + (activityRoot != null ? activityRoot.GetInstanceID().ToString() : "<missing>") +
+                "' evidenceRootInstanceId='" + (activityEvidence?.Root != null ? activityEvidence.Root.GetInstanceID().ToString() : "<destroyed>") +
+                "' declarationSame='" + activityDeclarationMatches +
+                "' identitySame='" + activityIdentityMatches +
+                "' partWasSubordinate='" + (activityEvidence?.PartWasSubordinate ?? false) +
+                "' partDestroyed='" + activityPartDestroyed +
+                "' witnessAbsent='" + activityWitnessAbsent +
+                "' rootWasLiveAtDestroy='" + (activityEvidence?.RootWasLive ?? false) +
+                "' declarationWasIntact='" + (activityEvidence?.DeclarationWasIntact ?? false) +
                 "' ownerSceneLoadedAtPartDestroy='" + (activityEvidence?.OwnerSceneWasLoaded ?? false) +
                 "' sceneUnloaded='" + scene.name + "'");
         }
 
         private void RecordRouteRelease(Scene scene)
         {
+            ObjectEntryDeclaration routeDeclaration = _routeDeclaration;
+            GameObject routeRoot = routeDeclaration != null ? routeDeclaration.gameObject : null;
+            ObjectEntryId routeObjectEntryId = ObjectEntryId.From(RouteEntryId);
+            QaIfAdr014CompositionWitness.DestructionEvidence routeEvidence = null;
+            bool routeEvidenceFound = routeRoot != null &&
+                QaIfAdr014CompositionWitness.TryGetDestructionEvidence(
+                    routeObjectEntryId,
+                    routeRoot,
+                    out routeEvidence);
+            bool routeRootMatches = routeEvidenceFound &&
+                object.ReferenceEquals(routeEvidence.Root, routeRoot);
+            bool routeDeclarationMatches = routeEvidenceFound &&
+                object.ReferenceEquals(routeEvidence.Declaration, routeDeclaration);
+            bool routeIdentityMatches = routeEvidenceFound &&
+                routeEvidence.ObjectEntryId == routeObjectEntryId;
+            bool routePartDestroyed = routeEvidenceFound && routeEvidence.PartWasDestroyed;
+            bool routeWitnessAbsent = routeDeclaration != null &&
+                routeDeclaration.GetComponentInChildren<QaIfAdr014CompositionWitness>(true) == null;
             bool routeCompositionReleased =
-                QaIfAdr014CompositionWitness.TryGetDestructionEvidence(RouteEntryId, out var routeEvidence) &&
-                routeEvidence.Root == _routeDeclaration.gameObject &&
-                routeEvidence.Declaration == _routeDeclaration &&
-                routeEvidence.ObjectEntryId == RouteEntryId &&
+                routeEvidenceFound &&
+                routeRootMatches &&
+                routeDeclarationMatches &&
+                routeIdentityMatches &&
+                routeEvidence.PartWasSubordinate &&
+                routePartDestroyed &&
                 routeEvidence.RootWasLive &&
                 routeEvidence.DeclarationWasIntact &&
                 routeEvidence.OwnerSceneWasLoaded &&
-                _routeDeclaration.GetComponentInChildren<QaIfAdr014CompositionWitness>(true) == null;
+                routeWitnessAbsent;
             RecordCompositionCase(
                 "route-composition-released-before-scene-unload",
                 routeCompositionReleased,
-                "rootStillSame='" + (_routeDeclaration != null && _routeDeclaration.gameObject == routeEvidence?.Root) +
+                "evidenceFound='" + routeEvidenceFound +
+                "' rootSame='" + routeRootMatches +
+                "' rootInstanceId='" + (routeRoot != null ? routeRoot.GetInstanceID().ToString() : "<missing>") +
+                "' evidenceRootInstanceId='" + (routeEvidence?.Root != null ? routeEvidence.Root.GetInstanceID().ToString() : "<destroyed>") +
+                "' declarationSame='" + routeDeclarationMatches +
+                "' identitySame='" + routeIdentityMatches +
+                "' partWasSubordinate='" + (routeEvidence?.PartWasSubordinate ?? false) +
+                "' partDestroyed='" + routePartDestroyed +
+                "' witnessAbsent='" + routeWitnessAbsent +
+                "' rootWasLiveAtDestroy='" + (routeEvidence?.RootWasLive ?? false) +
+                "' declarationWasIntact='" + (routeEvidence?.DeclarationWasIntact ?? false) +
                 "' ownerSceneLoadedAtPartDestroy='" + (routeEvidence?.OwnerSceneWasLoaded ?? false) +
                 "' sceneUnloaded='" + scene.name + "'");
         }

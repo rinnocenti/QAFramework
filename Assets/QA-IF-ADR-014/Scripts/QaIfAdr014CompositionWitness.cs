@@ -11,34 +11,43 @@ namespace Immersive.QaFramework.IfAdr014
         {
             internal DestructionEvidence(
                 GameObject root,
+                GameObject part,
                 ObjectEntryDeclaration declaration,
-                string objectEntryId,
+                ObjectEntryId objectEntryId,
+                bool partWasSubordinate,
                 bool rootWasLive,
                 bool declarationWasIntact,
                 bool ownerSceneWasLoaded)
             {
                 Root = root;
+                Part = part;
                 Declaration = declaration;
                 ObjectEntryId = objectEntryId;
+                PartWasSubordinate = partWasSubordinate;
                 RootWasLive = rootWasLive;
                 DeclarationWasIntact = declarationWasIntact;
                 OwnerSceneWasLoaded = ownerSceneWasLoaded;
             }
 
             public GameObject Root { get; }
+            public GameObject Part { get; }
             public ObjectEntryDeclaration Declaration { get; }
-            public string ObjectEntryId { get; }
+            public ObjectEntryId ObjectEntryId { get; }
+            public bool PartWasSubordinate { get; }
+            public bool PartWasDestroyed => Part == null;
             public bool RootWasLive { get; }
             public bool DeclarationWasIntact { get; }
             public bool OwnerSceneWasLoaded { get; }
         }
 
-        private static readonly Dictionary<string, DestructionEvidence> Destructions =
-            new Dictionary<string, DestructionEvidence>();
+        private static readonly List<DestructionEvidence> Destructions =
+            new List<DestructionEvidence>();
 
         private GameObject _root;
+        private GameObject _part;
         private ObjectEntryDeclaration _declaration;
-        private string _objectEntryId = string.Empty;
+        private ObjectEntryId _objectEntryId;
+        private bool _partWasSubordinate;
         private Scene _ownerScene;
 
         public static void ResetEvidence()
@@ -47,10 +56,26 @@ namespace Immersive.QaFramework.IfAdr014
         }
 
         public static bool TryGetDestructionEvidence(
-            string objectEntryId,
+            ObjectEntryId objectEntryId,
+            GameObject expectedRoot,
             out DestructionEvidence evidence)
         {
-            return Destructions.TryGetValue(objectEntryId ?? string.Empty, out evidence);
+            evidence = null;
+            if (!objectEntryId.IsValid || object.ReferenceEquals(expectedRoot, null))
+                return false;
+
+            for (int index = Destructions.Count - 1; index >= 0; index--)
+            {
+                DestructionEvidence candidate = Destructions[index];
+                if (candidate.ObjectEntryId == objectEntryId &&
+                    object.ReferenceEquals(candidate.Root, expectedRoot))
+                {
+                    evidence = candidate;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void OnEnable()
@@ -63,7 +88,10 @@ namespace Immersive.QaFramework.IfAdr014
                 return;
 
             _root = _declaration.gameObject;
-            _objectEntryId = id.StableText;
+            _part = gameObject;
+            _objectEntryId = id;
+            _partWasSubordinate = !object.ReferenceEquals(_part, _root) &&
+                _part.transform.IsChildOf(_root.transform);
             _ownerScene = _root.scene;
         }
 
@@ -73,18 +101,20 @@ namespace Immersive.QaFramework.IfAdr014
             bool declarationWasIntact = rootWasLive && _declaration != null &&
                 object.ReferenceEquals(_declaration, _root.GetComponent<ObjectEntryDeclaration>()) &&
                 _declaration.TryGetObjectEntryId(out ObjectEntryId currentId) &&
-                currentId.StableText == _objectEntryId;
+                currentId == _objectEntryId;
             bool ownerSceneWasLoaded = _ownerScene.IsValid() && _ownerScene.isLoaded;
 
-            if (!string.IsNullOrEmpty(_objectEntryId))
+            if (_objectEntryId.IsValid)
             {
-                Destructions[_objectEntryId] = new DestructionEvidence(
+                Destructions.Add(new DestructionEvidence(
                     _root,
+                    _part,
                     _declaration,
                     _objectEntryId,
+                    _partWasSubordinate,
                     rootWasLive,
                     declarationWasIntact,
-                    ownerSceneWasLoaded);
+                    ownerSceneWasLoaded));
             }
         }
     }
