@@ -31,9 +31,9 @@ Each result line includes the public result Diagnostic. Output follows the QAFra
 
 ## Validation record
 
-The Project Owner reports that the scenario was executed in Unity 6 and ended with `[IF-ADR-014-DEMO] status='Passed' cases='10/10'`. The reported run includes Object Entry recognition, same-occurrence multiple-collider queries, query invalidation, Activity restart/readmission with a new physical root, cleanup before Activity/Route scene unload, and Replacement Route loading. This is owner-reported Play Mode evidence; no raw Console log or execution source SHA was attached, and Codex did not run Unity.
+The Project Owner supplied a Unity 6 Console transcript ending with `[IF-ADR-014-DEMO] status='Passed' cases='10/10'` after the Framework B2 protected-root/cleanup-retry follow-ups. Evidence includes Object Entry recognition, same-occurrence multiple-collider queries, query invalidation, Activity Restart/readmission with a new physical root, separate destruction evidence per physical occurrence, protected root/declaration/identity intact at part destruction, cleanup before Activity/Route scene unload, and successful Replacement Route loading. This is **owner-executed Play Mode evidence**; the transcript is available in the project conversation but does not fingerprint the package source SHA. Codex did not execute Unity.
 
-The earlier full Framework Edit Mode run reported 514/517 tests. The three reported regressions were corrected in the merged Framework PR, but no post-fix full-suite run is available. A later Framework cleanup guard is under follow-up review and is not part of the merged Framework revision; rerun the full 517-test suite and this 10-case Play Mode scenario against the final integrated Framework revision before technical closure.
+The Project Owner also supplied a Unity Test Runner screenshot showing **518/518 Edit Mode PASS, 0 failed** after the earlier 514/517 result and the follow-up retry fix. This is an owner-observed Unity validation result, not an attached NUnit XML report. Framework PR #22 tracks integration of the post-merge protected-root/retry fixes; QAFramework PR #2 tracks this evidence update. B2 is technically validated for the tested Route/Activity lifecycle scope, not for Session, dynamic spawning, or live add/replace/remove contribution APIs.
 
 ## Restore and repeat
 
