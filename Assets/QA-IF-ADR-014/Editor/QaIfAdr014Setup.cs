@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Immersive.Framework.ActivityRestart;
 using Immersive.Framework.Authoring;
 using Immersive.Framework.GameFlow;
 using Immersive.Framework.ObjectEntry;
@@ -23,11 +24,16 @@ namespace Immersive.QaFramework.IfAdr014.Editor
         private const string RoutePath = Settings + "/Route_QaIfAdr014.asset";
         private const string ActivityPath = Settings + "/Activity_QaIfAdr014.asset";
         private const string ActivityProfilePath = Settings + "/ActivityContentProfile_QaIfAdr014.asset";
+        private const string ActivityCompositionProfilePath = Settings + "/ObjectEntryComposition_Activity_QaIfAdr014.asset";
+        private const string RouteCompositionProfilePath = Settings + "/ObjectEntryComposition_Route_QaIfAdr014.asset";
+        private const string ReplacementRoutePath = Settings + "/Route_QaIfAdr014_Replacement.asset";
+        private const string CompositionPrefabPath = Generated + "/Prefabs/QA_IF_ADR_014_ComposedCapability.prefab";
         private const string PersistentScenePath = Scenes + "/QA_IF_ADR_014_Persistent.unity";
         private const string RouteScenePath = Scenes + "/QA_IF_ADR_014_Route.unity";
+        private const string ReplacementRouteScenePath = Scenes + "/QA_IF_ADR_014_ReplacementRoute.unity";
         private const string ActivityScenePath = Scenes + "/QA_IF_ADR_014_Activity.unity";
 
-        [MenuItem("Immersive Framework/QA/IF-ADR-014/Generate Object Entry Recognition Demo")]
+        [MenuItem("Immersive Framework/QA/IF-ADR-014/Generate Object Entry Recognition and Composition Lifecycle Demo")]
         public static void Generate()
         {
             string generatedDirectory = System.IO.Path.Combine(
@@ -50,11 +56,13 @@ namespace Immersive.QaFramework.IfAdr014.Editor
                     AssetDatabase.LoadAssetAtPath<ActivityAsset>(ActivityPath);
                 bool clearedRouteStartupActivity = ClearUnexpectedRouteStartupActivity(existingRoute);
                 bool repairedBindings = RepairPersistentSceneBindings(existingActivity);
-                if (clearedRouteStartupActivity || repairedBindings)
+                bool repairedCompositionFixtures = EnsureCompositionLifecycleFixtures(existingRoute, existingActivity);
+                if (clearedRouteStartupActivity || repairedBindings || repairedCompositionFixtures)
                     Debug.Log("[IF-ADR-014-DEMO] setup='RepairedPreparedBindings' routeStartupActivityCleared='" +
-                        clearedRouteStartupActivity + "' persistentSceneBindingsRepaired='" + repairedBindings + "'");
+                        clearedRouteStartupActivity + "' persistentSceneBindingsRepaired='" + repairedBindings +
+                        "' compositionFixturesRepaired='" + repairedCompositionFixtures + "'");
 
-                Debug.Log("[IF-ADR-014-DEMO] setup='AlreadyPrepared' scenes='3' generated='" + Generated +
+                Debug.Log("[IF-ADR-014-DEMO] setup='AlreadyPrepared' scenes='4' generated='" + Generated +
                     "' next='Continue with the Build Profile / Shared Scene List and Active Game Application.'");
                 return;
             }
@@ -94,8 +102,325 @@ namespace Immersive.QaFramework.IfAdr014.Editor
                 EditorSceneManager.RestoreSceneManagerSetup(previousSetup);
             }
 
-            Debug.Log("[IF-ADR-014-DEMO] setup='Prepared' scenes='3' generated='" + Generated +
-                "' next='Add generated scenes to the active Build Profile / Shared Scene List and select GameApplication_QaIfAdr014.'");
+            bool compositionFixturesCreated = EnsureCompositionLifecycleFixtures(
+                AssetDatabase.LoadAssetAtPath<RouteAsset>(RoutePath),
+                AssetDatabase.LoadAssetAtPath<ActivityAsset>(ActivityPath));
+
+            Debug.Log("[IF-ADR-014-DEMO] setup='Prepared' scenes='4' generated='" + Generated +
+                "' compositionFixturesCreated='" + compositionFixturesCreated +
+                "' next='Add generated scenes, including ReplacementRoute, to the active Build Profile / Shared Scene List and select GameApplication_QaIfAdr014.'");
+        }
+
+        private static bool EnsureCompositionLifecycleFixtures(RouteAsset route, ActivityAsset activity)
+        {
+            if (route == null || activity == null)
+                throw new InvalidOperationException("IF-ADR-014 composition setup requires its generated Route and Activity assets.");
+
+            EnsureFolder(Generated, "Prefabs");
+            GameObject capabilityPrefab = EnsureCompositionPrefab();
+            ObjectEntryCompositionProfile activityProfile = EnsureCompositionProfile(
+                ActivityCompositionProfilePath,
+                "qa.if-adr-014.activity-capability",
+                capabilityPrefab);
+            ObjectEntryCompositionProfile routeProfile = EnsureCompositionProfile(
+                RouteCompositionProfilePath,
+                "qa.if-adr-014.route-capability",
+                capabilityPrefab);
+            RouteAsset replacementRoute = EnsureReplacementRoute();
+
+            SceneSetup[] previousSetup = CaptureRestorableSceneSetup();
+            bool changed = false;
+            try
+            {
+                EnsureReplacementRouteScene();
+                changed |= ConfigureCompositionScene(
+                    RouteScenePath,
+                    QaIfAdr014ObjectEntryRecognitionDemo.RouteEntryId,
+                    routeProfile);
+                changed |= ConfigureCompositionScene(
+                    ActivityScenePath,
+                    QaIfAdr014ObjectEntryRecognitionDemo.ActivityEntryId,
+                    activityProfile);
+                changed |= ConfigurePersistentRouteReplacement(
+                    replacementRoute,
+                    activity);
+            }
+            finally
+            {
+                EditorSceneManager.RestoreSceneManagerSetup(previousSetup);
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            return changed;
+        }
+
+        private static GameObject EnsureCompositionPrefab()
+        {
+            GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(CompositionPrefabPath);
+            if (existing != null)
+            {
+                if (existing.GetComponent<QaIfAdr014CompositionWitness>() == null)
+                    throw new InvalidOperationException("Existing IF-ADR-014 composition prefab is missing its witness component.");
+                return existing;
+            }
+
+            if (System.IO.File.Exists(System.IO.Path.Combine(Application.dataPath,
+                    CompositionPrefabPath.Substring("Assets/".Length))))
+            {
+                AssetDatabase.Refresh();
+                existing = AssetDatabase.LoadAssetAtPath<GameObject>(CompositionPrefabPath);
+                if (existing != null)
+                    return existing;
+                throw new InvalidOperationException("IF-ADR-014 composition prefab exists on disk but did not import.");
+            }
+
+            var root = new GameObject("QA_IF_ADR_014_ComposedCapability");
+            root.AddComponent<QaIfAdr014CompositionWitness>();
+            GameObject saved = PrefabUtility.SaveAsPrefabAsset(root, CompositionPrefabPath);
+            UnityEngine.Object.DestroyImmediate(root);
+            if (saved == null)
+                throw new InvalidOperationException("Could not create the IF-ADR-014 composition witness prefab.");
+            return saved;
+        }
+
+        private static ObjectEntryCompositionProfile EnsureCompositionProfile(
+            string path,
+            string key,
+            GameObject prefab)
+        {
+            ObjectEntryCompositionProfile profile = AssetDatabase.LoadAssetAtPath<ObjectEntryCompositionProfile>(path);
+            if (profile == null)
+            {
+                if (System.IO.File.Exists(System.IO.Path.Combine(Application.dataPath,
+                        path.Substring("Assets/".Length))))
+                    throw new InvalidOperationException("An incompatible asset already exists at " + path);
+
+                profile = ScriptableObject.CreateInstance<ObjectEntryCompositionProfile>();
+                AssetDatabase.CreateAsset(profile, path);
+                SerializedObject serialized = new SerializedObject(profile);
+                serialized.Update();
+                SerializedProperty parts = Required(serialized, "parts");
+                parts.arraySize = 1;
+                SerializedProperty part = parts.GetArrayElementAtIndex(0);
+                Required(part, "key").stringValue = key;
+                Required(part, "prefab").objectReferenceValue = prefab;
+                Required(part, "dependencies").arraySize = 0;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(profile);
+                AssetDatabase.SaveAssets();
+            }
+
+            if (!profile.TryValidate(out string validationIssue))
+                throw new InvalidOperationException("Generated Object Entry composition profile is invalid: " + validationIssue);
+
+            SerializedObject verify = new SerializedObject(profile);
+            verify.Update();
+            SerializedProperty entries = Required(verify, "parts");
+            if (entries.arraySize != 1)
+                throw new InvalidOperationException("Existing composition profile has an unexpected part count: " + path);
+            SerializedProperty authoredPart = entries.GetArrayElementAtIndex(0);
+            if (Required(authoredPart, "key").stringValue != key ||
+                Required(authoredPart, "prefab").objectReferenceValue != prefab ||
+                Required(authoredPart, "dependencies").arraySize != 0)
+                throw new InvalidOperationException("Existing composition profile does not match the IF-ADR-014 generated fixture: " + path);
+            return profile;
+        }
+
+        private static RouteAsset EnsureReplacementRoute()
+        {
+            RouteAsset replacement = AssetDatabase.LoadAssetAtPath<RouteAsset>(ReplacementRoutePath);
+            if (replacement == null)
+            {
+                if (System.IO.File.Exists(System.IO.Path.Combine(Application.dataPath,
+                        ReplacementRoutePath.Substring("Assets/".Length))))
+                    throw new InvalidOperationException("An incompatible asset already exists at " + ReplacementRoutePath);
+                if (!AssetDatabase.CopyAsset(RouteSource, ReplacementRoutePath))
+                    throw new InvalidOperationException("Could not create the IF-ADR-014 replacement Route asset.");
+                AssetDatabase.ImportAsset(ReplacementRoutePath, ImportAssetOptions.ForceUpdate);
+                replacement = AssetDatabase.LoadAssetAtPath<RouteAsset>(ReplacementRoutePath);
+                if (replacement == null)
+                    throw new InvalidOperationException("The IF-ADR-014 replacement Route did not import.");
+                Set(replacement, "routeId", "qa.if-adr-014.replacement-route");
+                Set(replacement, "routeName", "IF-ADR-014 Replacement Route");
+                Set(replacement, "primaryScenePath", ReplacementRouteScenePath);
+                Set(replacement, "primarySceneName", "QA_IF_ADR_014_ReplacementRoute");
+                Set(replacement, "startupActivity", (UnityEngine.Object)null);
+                AssetDatabase.SaveAssets();
+            }
+            else if (replacement.RouteId.StableText != "qa.if-adr-014.replacement-route" ||
+                     replacement.PrimaryScenePath != ReplacementRouteScenePath)
+            {
+                throw new InvalidOperationException("Existing replacement Route asset has conflicting generated settings.");
+            }
+
+            return replacement;
+        }
+
+        private static void EnsureReplacementRouteScene()
+        {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(ReplacementRouteScenePath) != null)
+                return;
+            if (System.IO.File.Exists(System.IO.Path.Combine(Application.dataPath,
+                    ReplacementRouteScenePath.Substring("Assets/".Length))))
+            {
+                AssetDatabase.Refresh();
+                if (AssetDatabase.LoadAssetAtPath<SceneAsset>(ReplacementRouteScenePath) != null)
+                    return;
+                throw new InvalidOperationException("Replacement Route scene exists on disk but did not import.");
+            }
+
+            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            try
+            {
+                SaveScene(scene, ReplacementRouteScenePath);
+            }
+            finally
+            {
+                if (scene.IsValid() && scene.isLoaded && !EditorSceneManager.CloseScene(scene, true))
+                    throw new InvalidOperationException("Could not close the generated replacement Route scene.");
+            }
+        }
+
+        private static bool ConfigureCompositionScene(
+            string scenePath,
+            string expectedObjectEntryId,
+            ObjectEntryCompositionProfile profile)
+        {
+            Scene scene = OpenGeneratedScene(scenePath, out bool openedForEdit);
+            try
+            {
+                if (scene.isDirty)
+                    throw new InvalidOperationException("Generated scene has unsaved changes; refusing to modify it: " + scenePath);
+
+                ObjectEntryDeclaration[] declarations = FindSceneComponents<ObjectEntryDeclaration>(scene);
+                ObjectEntryId expectedId = ObjectEntryId.From(expectedObjectEntryId);
+                ObjectEntryDeclaration selected = null;
+                for (int index = 0; index < declarations.Length; index++)
+                {
+                    if (!declarations[index].TryGetObjectEntryId(out ObjectEntryId id) ||
+                        id != expectedId)
+                        continue;
+                    if (selected != null)
+                        throw new InvalidOperationException("Generated scene contains duplicate target Object Entry IDs: " + scenePath);
+                    selected = declarations[index];
+                }
+
+                if (selected == null)
+                    throw new InvalidOperationException("Generated scene is missing the expected Object Entry: " + expectedObjectEntryId);
+                ObjectEntryCompositionAuthoring authoring = selected.GetComponent<ObjectEntryCompositionAuthoring>();
+                bool changed = authoring == null || authoring.Profile != profile;
+                if (authoring == null)
+                    authoring = selected.gameObject.AddComponent<ObjectEntryCompositionAuthoring>();
+                if (authoring.Profile != profile)
+                    Set(authoring, "profile", profile);
+                if (changed)
+                {
+                    EditorSceneManager.MarkSceneDirty(scene);
+                    SaveScene(scene, scenePath);
+                }
+                return changed;
+            }
+            finally
+            {
+                CloseGeneratedSceneIfNeeded(scene, openedForEdit);
+            }
+        }
+
+        private static bool ConfigurePersistentRouteReplacement(
+            RouteAsset replacementRoute,
+            ActivityAsset activity)
+        {
+            Scene scene = OpenGeneratedScene(PersistentScenePath, out bool openedForEdit);
+            try
+            {
+                if (scene.isDirty)
+                    throw new InvalidOperationException("Generated Persistent scene has unsaved changes; refusing to modify it.");
+                GameObject controller = null;
+                foreach (GameObject root in scene.GetRootGameObjects())
+                {
+                    if (root.name != "IF-ADR-014 Recognition Demo") continue;
+                    if (controller != null)
+                        throw new InvalidOperationException("Persistent scene contains duplicate IF-ADR-014 demo controllers.");
+                    controller = root;
+                }
+                if (controller == null)
+                    throw new InvalidOperationException("Persistent scene is missing the IF-ADR-014 demo controller.");
+
+                RouteRequestTrigger routeRequest = controller.GetComponent<RouteRequestTrigger>();
+                bool changed = routeRequest == null;
+                if (routeRequest == null)
+                    routeRequest = controller.AddComponent<RouteRequestTrigger>();
+                if (routeRequest.TargetRoute != replacementRoute)
+                {
+                    routeRequest.TargetRoute = replacementRoute;
+                    changed = true;
+                }
+
+                ActivityRestartTrigger activityRestart = controller.GetComponent<ActivityRestartTrigger>();
+                if (activityRestart == null)
+                {
+                    activityRestart = controller.AddComponent<ActivityRestartTrigger>();
+                    changed = true;
+                }
+                if (activityRestart.TargetActivity != activity)
+                {
+                    activityRestart.TargetActivity = activity;
+                    changed = true;
+                }
+
+                QaIfAdr014ObjectEntryRecognitionDemo demo = controller.GetComponent<QaIfAdr014ObjectEntryRecognitionDemo>();
+                if (demo == null)
+                    throw new InvalidOperationException("Persistent scene is missing its IF-ADR-014 demo component.");
+                SerializedObject serialized = new SerializedObject(demo);
+                serialized.Update();
+                SerializedProperty routeTrigger = Required(serialized, "routeRequest");
+                SerializedProperty routeAsset = Required(serialized, "replacementRoute");
+                SerializedProperty restartTrigger = Required(serialized, "activityRestart");
+                changed |= routeTrigger.objectReferenceValue != routeRequest ||
+                    routeAsset.objectReferenceValue != replacementRoute ||
+                    restartTrigger.objectReferenceValue != activityRestart;
+                routeTrigger.objectReferenceValue = routeRequest;
+                routeAsset.objectReferenceValue = replacementRoute;
+                restartTrigger.objectReferenceValue = activityRestart;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+
+                if (changed)
+                {
+                    EditorSceneManager.MarkSceneDirty(scene);
+                    SaveScene(scene, PersistentScenePath);
+                }
+                return changed;
+            }
+            finally
+            {
+                CloseGeneratedSceneIfNeeded(scene, openedForEdit);
+            }
+        }
+
+        private static Scene OpenGeneratedScene(string path, out bool openedForEdit)
+        {
+            Scene scene = EditorSceneManager.GetSceneByPath(path);
+            openedForEdit = !scene.IsValid() || !scene.isLoaded;
+            if (openedForEdit)
+                scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
+            if (!scene.IsValid() || !scene.isLoaded)
+                throw new InvalidOperationException("Could not open generated IF-ADR-014 scene: " + path);
+            return scene;
+        }
+
+        private static void CloseGeneratedSceneIfNeeded(Scene scene, bool openedForEdit)
+        {
+            if (openedForEdit && scene.IsValid() && scene.isLoaded && !EditorSceneManager.CloseScene(scene, true))
+                throw new InvalidOperationException("Could not close generated IF-ADR-014 scene after setup.");
+        }
+
+        private static T[] FindSceneComponents<T>(Scene scene) where T : Component
+        {
+            var components = new List<T>();
+            foreach (GameObject root in scene.GetRootGameObjects())
+                components.AddRange(root.GetComponentsInChildren<T>(true));
+            return components.ToArray();
         }
 
         private static SceneSetup[] CaptureRestorableSceneSetup()
