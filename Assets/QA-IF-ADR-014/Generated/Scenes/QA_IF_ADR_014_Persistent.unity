@@ -130,6 +130,8 @@ GameObject:
   - component: {fileID: 1595896312}
   - component: {fileID: 1595896311}
   - component: {fileID: 1595896310}
+  - component: {fileID: 1595896314}
+  - component: {fileID: 1595896313}
   m_Layer: 0
   m_Name: IF-ADR-014 Recognition Demo
   m_TagString: Untagged
@@ -150,7 +152,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ImmersiveFrameworkQA.IFADR014.Runtime::Immersive.QaFramework.IfAdr014.QaIfAdr014ObjectEntryRecognitionDemo
   activityRequest: {fileID: 1595896311}
+  activityRestart: {fileID: 1595896313}
   activity: {fileID: 11400000, guid: 7da19367a064f99499862a3d3f95d71a, type: 2}
+  routeRequest: {fileID: 1595896314}
+  replacementRoute: {fileID: 11400000, guid: e16ac81387dc7a644bf5e3bf6d3f2e68, type: 2}
   unadmittedDeclaration: {fileID: 1933453608}
   unadmittedCollider: {fileID: 1933453607}
 --- !u!114 &1595896311
@@ -182,6 +187,54 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1595896313
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1595896309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e12a929b1fba4484b366177d22fb21c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.ActivityRestart.ActivityRestartTrigger
+  targetActivity: {fileID: 11400000, guid: 7da19367a064f99499862a3d3f95d71a, type: 2}
+  useCurrentActivityWhenTargetMissing: 1
+  requireTargetActivityIsCurrent: 1
+  reason: 
+  resetTarget:
+    kind: 30
+    objectTarget:
+      referenceMode: 0
+      directResettable: {fileID: 0}
+      stableReference:
+        objectEntryIdText: 
+        ownerSelectorKind: 0
+        routeOwner: {fileID: 0}
+        activityOwner: {fileID: 0}
+    compositionTarget:
+      referenceMode: 0
+      directComposition: {fileID: 0}
+      stableReference:
+        objectEntryIdText: 
+        ownerSelectorKind: 0
+        routeOwner: {fileID: 0}
+        activityOwner: {fileID: 0}
+--- !u!114 &1595896314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1595896309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28610c31d6664544a0ad2415cd5fbf04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Immersive.Framework.Runtime::Immersive.Framework.GameFlow.RouteRequestTrigger
+  targetRoute: {fileID: 11400000, guid: e16ac81387dc7a644bf5e3bf6d3f2e68, type: 2}
+  reason: 
 --- !u!1 &1933453606
 GameObject:
   m_ObjectHideFlags: 0
