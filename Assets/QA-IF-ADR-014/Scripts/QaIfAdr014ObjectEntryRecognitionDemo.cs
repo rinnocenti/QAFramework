@@ -303,10 +303,10 @@ namespace Immersive.QaFramework.IfAdr014
                 replacementActivityOccurrenceCommitted,
                 "oldRootStillLive='" + (_restartedActivityRootToCleanup != null) +
                 "' newRoot='" + (restartedActivityDeclaration != null ? restartedActivityDeclaration.name : "<missing>") +
-                "' oldRootInstanceId='" + (_restartedActivityRootToCleanup != null
-                    ? _restartedActivityRootToCleanup.GetInstanceID().ToString() : "<missing>") +
-                "' newRootInstanceId='" + (restartedActivityRoot != null
-                    ? restartedActivityRoot.GetInstanceID().ToString() : "<missing>") +
+                "' oldRootEntityId='" + (_restartedActivityRootToCleanup != null
+                    ? _restartedActivityRootToCleanup.GetEntityId().ToString() : "<missing>") +
+                "' newRootEntityId='" + (restartedActivityRoot != null
+                    ? restartedActivityRoot.GetEntityId().ToString() : "<missing>") +
                 "' sameObjectEntryId='" + (restartedActivityReady.ObjectEntryId.IsValid &&
                     restartedActivityReady.ObjectEntryId == restartedActivityId) +
                 "' previousEvidenceMatchesOldRoot='" + previousEvidenceMatchesOldRoot +
@@ -464,8 +464,8 @@ namespace Immersive.QaFramework.IfAdr014
                 activityCompositionReleased,
                 "evidenceFound='" + activityEvidenceFound +
                 "' rootSame='" + activityRootMatches +
-                "' rootInstanceId='" + (activityRoot != null ? activityRoot.GetInstanceID().ToString() : "<missing>") +
-                "' evidenceRootInstanceId='" + (activityEvidence?.Root != null ? activityEvidence.Root.GetInstanceID().ToString() : "<destroyed>") +
+                "' rootEntityId='" + (activityRoot != null ? activityRoot.GetEntityId().ToString() : "<missing>") +
+                "' evidenceRootEntityId='" + (activityEvidence?.Root != null ? activityEvidence.Root.GetEntityId().ToString() : "<destroyed>") +
                 "' declarationSame='" + activityDeclarationMatches +
                 "' identitySame='" + activityIdentityMatches +
                 "' partWasSubordinate='" + (activityEvidence?.PartWasSubordinate ?? false) +
@@ -513,8 +513,8 @@ namespace Immersive.QaFramework.IfAdr014
                 routeCompositionReleased,
                 "evidenceFound='" + routeEvidenceFound +
                 "' rootSame='" + routeRootMatches +
-                "' rootInstanceId='" + (routeRoot != null ? routeRoot.GetInstanceID().ToString() : "<missing>") +
-                "' evidenceRootInstanceId='" + (routeEvidence?.Root != null ? routeEvidence.Root.GetInstanceID().ToString() : "<destroyed>") +
+                "' rootEntityId='" + (routeRoot != null ? routeRoot.GetEntityId().ToString() : "<missing>") +
+                "' evidenceRootEntityId='" + (routeEvidence?.Root != null ? routeEvidence.Root.GetEntityId().ToString() : "<destroyed>") +
                 "' declarationSame='" + routeDeclarationMatches +
                 "' identitySame='" + routeIdentityMatches +
                 "' partWasSubordinate='" + (routeEvidence?.PartWasSubordinate ?? false) +
