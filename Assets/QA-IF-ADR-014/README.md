@@ -29,6 +29,12 @@ The scenario runs automatically. It waits for the Route commit, queries a declar
 
 Each result line includes the public result Diagnostic. Output follows the QAFramework structured Unity Console convention; the Framework logging adapter is internal and is not a consumer API.
 
+## Validation record
+
+The Project Owner reports that the scenario was executed in Unity 6 and ended with `[IF-ADR-014-DEMO] status='Passed' cases='10/10'`. The reported run includes Object Entry recognition, same-occurrence multiple-collider queries, query invalidation, Activity restart/readmission with a new physical root, cleanup before Activity/Route scene unload, and Replacement Route loading. This is owner-reported Play Mode evidence; no raw Console log or execution source SHA was attached, and Codex did not run Unity.
+
+The earlier full Framework Edit Mode run reported 514/517 tests. The three reported regressions were corrected in the merged Framework PR, but no post-fix full-suite run is available. A later Framework cleanup guard is under follow-up review and is not part of the merged Framework revision; rerun the full 517-test suite and this 10-case Play Mode scenario against the final integrated Framework revision before technical closure.
+
 ## Restore and repeat
 
 Exit Play Mode, restore the previous Active Game Application and Build Profile / Shared Scene List, and remove the generated scene paths from the list. To repeat setup safely, run the same menu command again; it reuses the generated files and does not recreate scenes. If the Generated folder is incomplete or contains conflicting references, setup stops without deleting or replacing the existing resources. Authored source files are outside that generated folder.
