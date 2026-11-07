@@ -61,7 +61,7 @@ namespace Immersive.QaFramework.IfAdr014.Editor
         [MenuItem("Immersive Framework/QA/IF-ADR-014/C4/Generate Dynamic Composition Certification")]
         public static void Generate()
         {
-            if (AssetDatabase.IsValidFolder(Generated))
+            if (AssetDatabase.IsValidFolder(Generated) && HasGeneratedFiles())
             {
                 ValidatePreparedAssets();
                 Debug.Log("[IF-ADR-014-C4] setup='AlreadyPrepared' generated='" + Generated +
@@ -69,21 +69,28 @@ namespace Immersive.QaFramework.IfAdr014.Editor
                 return;
             }
 
-            if (System.IO.Directory.Exists(System.IO.Path.Combine(
+            if (!AssetDatabase.IsValidFolder(Generated) &&
+                System.IO.Directory.Exists(System.IO.Path.Combine(
                     Application.dataPath, "QA-IF-ADR-014/C4/Generated")))
             {
                 AssetDatabase.Refresh();
                 if (AssetDatabase.IsValidFolder(Generated))
                 {
-                    ValidatePreparedAssets();
-                    return;
+                    if (HasGeneratedFiles())
+                    {
+                        ValidatePreparedAssets();
+                        return;
+                    }
                 }
-                throw new InvalidOperationException(
-                    "The C4 Generated directory exists on disk but Unity did not import it. Existing files were preserved.");
+                else
+                {
+                    throw new InvalidOperationException(
+                        "The C4 Generated directory exists on disk but Unity did not import it. Existing files were preserved.");
+                }
             }
 
             ValidateTemplates();
-            SceneSetup[] previousSetup = EditorSceneManager.GetSceneManagerSetup();
+            SceneSetup[] previousSetup = CaptureRestorableSceneSetup();
             try
             {
                 EnsureFolder(Root, "Generated");
@@ -130,6 +137,85 @@ namespace Immersive.QaFramework.IfAdr014.Editor
                 throw new InvalidOperationException("Missing QA-NEW-001 Game Application template: " + ApplicationSource);
             if (AssetDatabase.LoadAssetAtPath<RouteAsset>(RouteSource) == null)
                 throw new InvalidOperationException("Missing QA-NEW-001 Route template: " + RouteSource);
+        }
+
+        private static bool HasGeneratedFiles()
+        {
+            string absoluteGeneratedPath = System.IO.Path.Combine(
+                Application.dataPath, "QA-IF-ADR-014/C4/Generated");
+            if (!System.IO.Directory.Exists(absoluteGeneratedPath))
+                return false;
+
+            foreach (string filePath in System.IO.Directory.GetFiles(
+                         absoluteGeneratedPath, "*", System.IO.SearchOption.AllDirectories))
+            {
+                if (!filePath.EndsWith(".meta", StringComparison.OrdinalIgnoreCase))
+                    return true;
+
+                string metadataOwnerPath = filePath.Substring(0, filePath.Length - ".meta".Length);
+                if (!System.IO.Directory.Exists(metadataOwnerPath))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static SceneSetup[] CaptureRestorableSceneSetup()
+        {
+            EnsureRestorableActiveScene();
+            SceneSetup[] setup = EditorSceneManager.GetSceneManagerSetup();
+            if (!HasLoadedActiveScene(setup))
+                throw new InvalidOperationException(
+                    "Could not capture a restorable C4 Editor scene setup.");
+
+            return setup;
+        }
+
+        private static void EnsureRestorableActiveScene()
+        {
+            SceneSetup[] setup = EditorSceneManager.GetSceneManagerSetup();
+            if (HasLoadedActiveScene(setup))
+                return;
+
+            for (int index = 0; index < SceneManager.sceneCount; index++)
+            {
+                Scene loadedScene = SceneManager.GetSceneAt(index);
+                if (!loadedScene.IsValid() || !loadedScene.isLoaded)
+                    continue;
+
+                if (!SceneManager.SetActiveScene(loadedScene))
+                    throw new InvalidOperationException(
+                        "Could not establish an active scene while preserving the currently loaded Editor scenes.");
+
+                setup = EditorSceneManager.GetSceneManagerSetup();
+                if (HasLoadedActiveScene(setup))
+                    return;
+            }
+
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            setup = EditorSceneManager.GetSceneManagerSetup();
+            if (!HasLoadedActiveScene(setup))
+                throw new InvalidOperationException(
+                    "Could not create a restorable empty Editor scene for C4 setup.");
+        }
+
+        private static bool HasLoadedActiveScene(SceneSetup[] setup)
+        {
+            if (setup == null)
+                return false;
+
+            bool setupHasActiveLoadedScene = false;
+            foreach (SceneSetup sceneSetup in setup)
+            {
+                if (sceneSetup.isLoaded && sceneSetup.isActive)
+                {
+                    setupHasActiveLoadedScene = true;
+                    break;
+                }
+            }
+
+            Scene activeScene = SceneManager.GetActiveScene();
+            return setupHasActiveLoadedScene && activeScene.IsValid() && activeScene.isLoaded;
         }
 
         private static GameObject[] CreatePartPrefabs()
@@ -495,7 +581,7 @@ namespace Immersive.QaFramework.IfAdr014.Editor
             RouteAsset replacement,
             ObjectEntryCompositionProfile profile)
         {
-            SceneSetup[] previousSetup = EditorSceneManager.GetSceneManagerSetup();
+            SceneSetup[] previousSetup = CaptureRestorableSceneSetup();
             try
             {
                 ValidateScene(RouteScenePath, scene =>
