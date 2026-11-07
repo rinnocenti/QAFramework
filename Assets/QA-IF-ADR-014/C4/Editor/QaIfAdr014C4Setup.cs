@@ -177,22 +177,32 @@ namespace Immersive.QaFramework.IfAdr014.Editor
             if (HasLoadedActiveScene(setup))
                 return;
 
+            bool hasLoadedScene = false;
             for (int index = 0; index < SceneManager.sceneCount; index++)
             {
                 Scene loadedScene = SceneManager.GetSceneAt(index);
                 if (!loadedScene.IsValid() || !loadedScene.isLoaded)
                     continue;
 
+                hasLoadedScene = true;
                 if (!SceneManager.SetActiveScene(loadedScene))
-                    throw new InvalidOperationException(
-                        "Could not establish an active scene while preserving the currently loaded Editor scenes.");
+                    continue;
 
                 setup = EditorSceneManager.GetSceneManagerSetup();
                 if (HasLoadedActiveScene(setup))
                     return;
             }
 
-            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            Scene fallbackScene = EditorSceneManager.NewScene(
+                NewSceneSetup.EmptyScene,
+                hasLoadedScene ? NewSceneMode.Additive : NewSceneMode.Single);
+            if (!fallbackScene.IsValid() ||
+                !fallbackScene.isLoaded ||
+                (SceneManager.GetActiveScene() != fallbackScene &&
+                 !SceneManager.SetActiveScene(fallbackScene)))
+                throw new InvalidOperationException(
+                    "Could not create and activate a restorable empty Editor scene for C4 setup.");
+
             setup = EditorSceneManager.GetSceneManagerSetup();
             if (!HasLoadedActiveScene(setup))
                 throw new InvalidOperationException(

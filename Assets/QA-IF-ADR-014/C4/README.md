@@ -16,7 +16,7 @@ The C4 scenario is source-ready, not certified. The Project Owner must run it in
 ## Generate and select the fixture
 
 1. Run **Immersive Framework → QA → IF-ADR-014 → C4 → Generate Dynamic Composition Certification**.
-2. The generator creates or validates the isolated C4 assets. It leaves open scenes and their unsaved edits untouched, authors fixtures in additive scenes, and restores the prior Scene Manager Setup. If no Editor scene is loaded, it creates an empty untitled scene as a safe restoration target. A Generated tree containing only folder metadata from an interrupted first run is reused; if any generated files exist but the tree is incomplete or conflicting, the generator preserves them and reports the conflict without overwriting.
+2. The generator creates or validates the isolated C4 assets. It leaves open scenes and their unsaved edits untouched, authors fixtures in additive scenes, and restores the prior Scene Manager Setup. If no Editor scene is loaded, it creates an empty untitled scene as a safe restoration target. If loaded scenes cannot be activated, it adds an empty untitled scene without replacing them. A Generated tree containing only folder metadata from an interrupted first run is reused; if any generated files exist but the tree is incomplete or conflicting, the generator preserves them and reports the conflict without overwriting.
 3. Add these scenes to the active Build Profile / Shared Scene List:
    - Assets/QA-IF-ADR-014/C4/Generated/Scenes/QA_IF_ADR_014_C4_Persistent.unity
    - Assets/QA-IF-ADR-014/C4/Generated/Scenes/QA_IF_ADR_014_C4_Route.unity
