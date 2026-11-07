@@ -65,7 +65,7 @@ There is no public consumer API in this Framework checkout for requesting Framew
 - StableObjectBindingHostTeardownTests.OccurrenceQuery_FrameworkHostDestroyUnbindsPreviouslyHandedOffInterface exercises abrupt Host destruction, grant invalidation and later cleanup after the test releases its gate.
 - ObjectEntryCompositionMutationTests covers cancellation, owner-release drain, callback re-entry, failure, degraded replacement cleanup, retries and independent operation cleanup.
 
-These are source coverage references, not a claim that C3 Unity tests ran in this delivery. The Project Owner supplied 566/566 full Edit Mode visual evidence after C3; the named Controlled Stop and abrupt-teardown tests belong to that suite. Exact per-case XML and commit-fingerprinted execution evidence have not been supplied. This does not certify the new C4 Play Mode scenarios. Abrupt teardown invalidates grants and requests cancellation; cleanup completion is explicitly unconfirmed and is not asserted by C4.
+These are source coverage references. The Project Owner supplied visual evidence for a 566/566 full Edit Mode run after C3, including the named Controlled Stop and abrupt-teardown tests. Exact per-case XML and commit-fingerprinted execution evidence have not been supplied, and this does not certify the new C4 Play Mode scenarios. Abrupt teardown invalidates grants and requests cancellation; cleanup completion is explicitly unconfirmed and is not asserted by C4.
 
 ### C4 and C1–C3 coverage differences
 
