@@ -2,7 +2,7 @@
 
 This fixture is an isolated Play Mode consumer scenario for the public com.immersive.framework Object Entry composition API. It creates its own Game Application, Route, replacement Route, Activity, scenes, Base Profile and prefab assets below Assets/QA-IF-ADR-014/C4/Generated/. It does not alter the B2 demo or its assets.
 
-The C4 scenario is source-ready, not certified. The Project Owner must run it in Unity and retain the complete Console output. The prior B2 10/10 result is separate evidence and does not validate dynamic composition. The previously supplied 566/566 Edit Mode result is historical evidence for its reported baseline, not a run of C3 or C4.
+The C4 scenario is source-ready, not certified. The Project Owner must run it in Unity and retain the complete Console output. The prior B2 10/10 result is separate evidence and does not validate dynamic composition. The Project Owner's previously supplied 566/566 Edit Mode result supports the Framework C3 regression baseline (visual evidence, not SHA-fingerprinted); it is not a run of C4's new integrated Play Mode scenario.
 
 ## Prerequisites
 
@@ -53,7 +53,7 @@ The terminal count is 21 cases:
 20. A non-empty physical snapshot confirms active parts on Profile-only, Dynamic-only, Base-plus-Dynamic and current Activity roots, tied to the exact loaded owner scenes before Route replacement.
 21. Route replacement releases Route and current Activity parts physically before both owner scenes unload; old grants/handles remain stale.
 
-Each case logs its ID, observed and expected values, pass flag, ObjectEntryId, physical evidence and diagnostic. Passed is emitted only as cases='20/20'. Fixture/readiness timeouts are deadlock guards and produce Blocked; elapsed time is not accepted as cleanup evidence.
+Each case logs its ID, observed and expected values, pass flag, ObjectEntryId, physical evidence and diagnostic. Passed is emitted only as cases='21/21'. Fixture/readiness timeouts are deadlock guards and produce Blocked; elapsed time is not accepted as cleanup evidence.
 
 The witnesses capture the exact declaration root, logical ID and owner scene when a prefab part is enabled. Their destruction record is checked after Unity has completed destruction. The lifecycle cases preserve roots with DontDestroyOnLoad only to inspect the root and declaration after the owner releases acquired parts. The scenario destroys these retained roots after confirmed Route replacement.
 
@@ -65,7 +65,7 @@ There is no public consumer API in this Framework checkout for requesting Framew
 - StableObjectBindingHostTeardownTests.OccurrenceQuery_FrameworkHostDestroyUnbindsPreviouslyHandedOffInterface exercises abrupt Host destruction, grant invalidation and later cleanup after the test releases its gate.
 - ObjectEntryCompositionMutationTests covers cancellation, owner-release drain, callback re-entry, failure, degraded replacement cleanup, retries and independent operation cleanup.
 
-These are source coverage references, not a claim that C3 Unity tests ran in this delivery. Controlled Stop cleanup and the abrupt-teardown limit still require the Project Owner's C3 Unity validation. Abrupt teardown invalidates grants and requests cancellation; cleanup completion is explicitly unconfirmed and is not asserted by C4.
+These are source coverage references, not a claim that C3 Unity tests ran in this delivery. The Project Owner supplied 566/566 full Edit Mode visual evidence after C3; the named Controlled Stop and abrupt-teardown tests belong to that suite. Exact per-case XML and commit-fingerprinted execution evidence have not been supplied. This does not certify the new C4 Play Mode scenarios. Abrupt teardown invalidates grants and requests cancellation; cleanup completion is explicitly unconfirmed and is not asserted by C4.
 
 ### C4 and C1–C3 coverage differences
 
@@ -74,7 +74,7 @@ These are source coverage references, not a claim that C3 Unity tests ran in thi
 - The corresponding non-degraded rejection for `RemovePartAsync` is covered by `ObjectEntryCompositionMutationTests.DynamicContribution_RemoveOverrideRejectsTieHiddenByHigherWinner`; both tie variants remain complementary to C4's Play Mode mutation of physical objects.
 - Pending acquired-part cleanup and retry are covered by `StableObjectBindingTests.PendingAcquiredPartCleanup_RetainsOwnerUntilRetryConfirmsDestruction`. Cancellation, owner-release drain, callback re-entry, failures, degraded replacement cleanup and independent operation cleanup remain in `ObjectEntryCompositionMutationTests`.
 - Controlled Stop uses `FrameworkRuntimeHostControlledStopTests.FullStartupAndControlledStop_RetainExactRootsAndSameHostForReleaseRetry`. Abrupt Host teardown uses `StableObjectBindingHostTeardownTests.OccurrenceQuery_FrameworkHostDestroyUnbindsPreviouslyHandedOffInterface`; its public Play Mode observability remains limited as described above.
-- Actor Composition and ordinary Object Entry query regressions are outside the 20 C4 cases. Include `ActorCompositionRecompositionTests`, `PlayerActorCompositionAccessTests` and the full `StableObjectBindingTests` coverage in the Project Owner's Edit Mode validation. None of these source references imply that the tests ran for this delivery.
+- Actor Composition and ordinary Object Entry query regressions are outside the 21 C4 cases. Include `ActorCompositionRecompositionTests`, `PlayerActorCompositionAccessTests` and the full `StableObjectBindingTests` coverage in the Project Owner's Edit Mode validation. None of these source references imply that the tests ran for this delivery.
 
 The public IObjectEntryRecognitionQuery and IObjectEntryOccurrenceQuery remain read-only. The C4 scenario obtains write authority only from the exact occurrence's ObjectEntryCompositionAuthoring.
 
@@ -93,4 +93,4 @@ No Unity import, compile, Edit Mode or Play Mode run is claimed by this change. 
 - QAFramework baseline: `180f30895f66e194000112911fe9459d14b21d67`; Unity Editor: `6000.5.0f1`.
 - Framework source baseline: `2bf0560b88e35168c159e52240e498e3cb363fcc`.
 - Resolved Composition package: `0.1.0-preview.3`, package-lock hash `ef577765d0b565a020f3e98f6e5eaae681333c29`.
-- C4 source defines 20 Play Mode cases; execution and C3 Edit Mode evidence are pending Project Owner logs. Preserve the Unity version, QA/Framework commits, resolved package hash, full case output and Edit Mode counts with the eventual certification record.
+- C4 source defines 21 Play Mode cases; C4 Play Mode execution remains pending Project Owner logs. The separate 566/566 C3 Edit Mode screenshot has already been supplied, without an NUnit XML report or execution SHA. Preserve the Unity version, QA/Framework commits, resolved package hash, full case output and Edit Mode counts with the eventual certification record.
