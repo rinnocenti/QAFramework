@@ -25,6 +25,8 @@ namespace Immersive.QaFramework.IfAdr014.Editor
         private const string ApplicationSource =
             "Assets/QA-NEW-001/Settings/GameApplication_QaNew001.asset";
         private const string RouteSource = "Assets/QA-NEW-001/Settings/Route_QaNew001.asset";
+        private const string WorkspaceScenePath =
+            "Assets/QA-NEW-001/Scenes/QA_NEW_001_Persistent.unity";
 
         private const string ApplicationPath = Settings + "/GameApplication_QaIfAdr014C4.asset";
         private const string RoutePath = Settings + "/Route_QaIfAdr014C4.asset";
@@ -90,7 +92,7 @@ namespace Immersive.QaFramework.IfAdr014.Editor
             }
 
             ValidateTemplates();
-            SceneSetup[] previousSetup = CaptureRestorableSceneSetup();
+            SceneManagerSetupSnapshot previousSetup = CaptureRestorableSceneSetup();
             try
             {
                 EnsureFolder(Root, "Generated");
@@ -124,7 +126,7 @@ namespace Immersive.QaFramework.IfAdr014.Editor
             }
             finally
             {
-                EditorSceneManager.RestoreSceneManagerSetup(previousSetup);
+                RestoreSceneManagerSetup(previousSetup);
             }
 
             Debug.Log("[IF-ADR-014-C4] setup='Prepared' scenes='4' generated='" + Generated +
@@ -160,15 +162,68 @@ namespace Immersive.QaFramework.IfAdr014.Editor
             return false;
         }
 
-        private static SceneSetup[] CaptureRestorableSceneSetup()
+        private static SceneManagerSetupSnapshot CaptureRestorableSceneSetup()
         {
+            SceneSetup[] originalSetup = EditorSceneManager.GetSceneManagerSetup();
+            if (HasUntitledLoadedScene(originalSetup))
+                throw new InvalidOperationException(
+                    "C4 setup cannot add temporary scenes while an Untitled scene is open. " +
+                    "Save that scene as a .unity asset, or close it if it has no changes to preserve, then rerun C4 setup.");
+
+            bool originalSetupWasEmpty = originalSetup == null || originalSetup.Length == 0;
+            Scene workspaceScene = default;
+            if (originalSetupWasEmpty)
+            {
+                if (AssetDatabase.LoadAssetAtPath<SceneAsset>(WorkspaceScenePath) == null)
+                    throw new InvalidOperationException(
+                        "C4 setup has no open scene and could not find its saved restoration workspace: " +
+                        WorkspaceScenePath);
+
+                workspaceScene = EditorSceneManager.OpenScene(
+                    WorkspaceScenePath, OpenSceneMode.Single);
+            }
+
             EnsureRestorableActiveScene();
             SceneSetup[] setup = EditorSceneManager.GetSceneManagerSetup();
             if (!HasLoadedActiveScene(setup))
                 throw new InvalidOperationException(
                     "Could not capture a restorable C4 Editor scene setup.");
 
-            return setup;
+            return new SceneManagerSetupSnapshot(
+                setup, originalSetupWasEmpty, workspaceScene);
+        }
+
+        private static bool HasUntitledLoadedScene(SceneSetup[] setup)
+        {
+            if (setup == null)
+                return false;
+
+            foreach (SceneSetup sceneSetup in setup)
+            {
+                if (sceneSetup.isLoaded && string.IsNullOrEmpty(sceneSetup.path))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static void RestoreSceneManagerSetup(SceneManagerSetupSnapshot snapshot)
+        {
+            if (!snapshot.OriginalSetupWasEmpty)
+            {
+                EditorSceneManager.RestoreSceneManagerSetup(snapshot.Setup);
+                return;
+            }
+
+            Scene workspaceScene = EditorSceneManager.GetSceneByPath(WorkspaceScenePath);
+            if (!workspaceScene.IsValid() || !workspaceScene.isLoaded)
+                workspaceScene = snapshot.WorkspaceScene;
+
+            if (workspaceScene.IsValid() &&
+                workspaceScene.isLoaded &&
+                !EditorSceneManager.CloseScene(workspaceScene, true))
+                throw new InvalidOperationException(
+                    "Could not close the temporary C4 restoration workspace scene.");
         }
 
         private static void EnsureRestorableActiveScene()
@@ -177,14 +232,12 @@ namespace Immersive.QaFramework.IfAdr014.Editor
             if (HasLoadedActiveScene(setup))
                 return;
 
-            bool hasLoadedScene = false;
             for (int index = 0; index < SceneManager.sceneCount; index++)
             {
                 Scene loadedScene = SceneManager.GetSceneAt(index);
                 if (!loadedScene.IsValid() || !loadedScene.isLoaded)
                     continue;
 
-                hasLoadedScene = true;
                 if (!SceneManager.SetActiveScene(loadedScene))
                     continue;
 
@@ -193,20 +246,8 @@ namespace Immersive.QaFramework.IfAdr014.Editor
                     return;
             }
 
-            Scene fallbackScene = EditorSceneManager.NewScene(
-                NewSceneSetup.EmptyScene,
-                hasLoadedScene ? NewSceneMode.Additive : NewSceneMode.Single);
-            if (!fallbackScene.IsValid() ||
-                !fallbackScene.isLoaded ||
-                (SceneManager.GetActiveScene() != fallbackScene &&
-                 !SceneManager.SetActiveScene(fallbackScene)))
-                throw new InvalidOperationException(
-                    "Could not create and activate a restorable empty Editor scene for C4 setup.");
-
-            setup = EditorSceneManager.GetSceneManagerSetup();
-            if (!HasLoadedActiveScene(setup))
-                throw new InvalidOperationException(
-                    "Could not create a restorable empty Editor scene for C4 setup.");
+            throw new InvalidOperationException(
+                "C4 setup could not activate a loaded Editor scene. Make a saved scene active and rerun setup.");
         }
 
         private static bool HasLoadedActiveScene(SceneSetup[] setup)
@@ -226,6 +267,23 @@ namespace Immersive.QaFramework.IfAdr014.Editor
 
             Scene activeScene = SceneManager.GetActiveScene();
             return setupHasActiveLoadedScene && activeScene.IsValid() && activeScene.isLoaded;
+        }
+
+        private sealed class SceneManagerSetupSnapshot
+        {
+            public readonly SceneSetup[] Setup;
+            public readonly bool OriginalSetupWasEmpty;
+            public readonly Scene WorkspaceScene;
+
+            public SceneManagerSetupSnapshot(
+                SceneSetup[] setup,
+                bool originalSetupWasEmpty,
+                Scene workspaceScene)
+            {
+                Setup = setup;
+                OriginalSetupWasEmpty = originalSetupWasEmpty;
+                WorkspaceScene = workspaceScene;
+            }
         }
 
         private static GameObject[] CreatePartPrefabs()
@@ -591,7 +649,7 @@ namespace Immersive.QaFramework.IfAdr014.Editor
             RouteAsset replacement,
             ObjectEntryCompositionProfile profile)
         {
-            SceneSetup[] previousSetup = CaptureRestorableSceneSetup();
+            SceneManagerSetupSnapshot previousSetup = CaptureRestorableSceneSetup();
             try
             {
                 ValidateScene(RouteScenePath, scene =>
@@ -674,7 +732,7 @@ namespace Immersive.QaFramework.IfAdr014.Editor
             }
             finally
             {
-                EditorSceneManager.RestoreSceneManagerSetup(previousSetup);
+                RestoreSceneManagerSetup(previousSetup);
             }
         }
 
