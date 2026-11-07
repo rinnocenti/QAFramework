@@ -232,17 +232,17 @@ namespace Immersive.QaFramework.IfAdr014.Editor
             if (HasLoadedActiveScene(setup))
                 return;
 
-            for (int index = 0; index < SceneManager.sceneCount; index++)
+            for (int index = 0; index < EditorSceneManager.sceneCount; index++)
             {
-                Scene loadedScene = SceneManager.GetSceneAt(index);
+                Scene loadedScene = EditorSceneManager.GetSceneAt(index);
                 if (!loadedScene.IsValid() || !loadedScene.isLoaded)
                     continue;
 
-                if (!SceneManager.SetActiveScene(loadedScene))
+                if (!EditorSceneManager.SetActiveScene(loadedScene))
                     continue;
 
                 setup = EditorSceneManager.GetSceneManagerSetup();
-                if (HasLoadedActiveScene(setup))
+                if (HasLoadedActiveScene(setup) && EditorSceneManager.GetActiveScene() == loadedScene)
                     return;
             }
 
@@ -255,18 +255,61 @@ namespace Immersive.QaFramework.IfAdr014.Editor
             if (setup == null)
                 return false;
 
-            bool setupHasActiveLoadedScene = false;
+            Scene activeScene = EditorSceneManager.GetActiveScene();
+            if (!activeScene.IsValid() || !activeScene.isLoaded)
+                return false;
+
             foreach (SceneSetup sceneSetup in setup)
             {
-                if (sceneSetup.isLoaded && sceneSetup.isActive)
-                {
-                    setupHasActiveLoadedScene = true;
-                    break;
-                }
+                if (!sceneSetup.isLoaded || !sceneSetup.isActive ||
+                    string.IsNullOrEmpty(sceneSetup.path))
+                    continue;
+
+                Scene setupScene = EditorSceneManager.GetSceneByPath(sceneSetup.path);
+                if (setupScene.IsValid() && setupScene.isLoaded && setupScene == activeScene)
+                    return true;
             }
 
-            Scene activeScene = SceneManager.GetActiveScene();
-            return setupHasActiveLoadedScene && activeScene.IsValid() && activeScene.isLoaded;
+            return false;
+        }
+
+        private static void ActivateEditorScene(Scene scene, string purpose)
+        {
+            if (!scene.IsValid() || !scene.isLoaded || EditorSceneManager.IsPreviewScene(scene))
+                throw new InvalidOperationException(
+                    "C4 could not activate the " + purpose + ": sceneValid='" + scene.IsValid() +
+                    "' loaded='" + scene.isLoaded + "' preview='" + EditorSceneManager.IsPreviewScene(scene) +
+                    "' path='" + scene.path + "'.");
+
+            if (EditorSceneManager.GetActiveScene() != scene &&
+                !EditorSceneManager.SetActiveScene(scene))
+                throw new InvalidOperationException(
+                    "C4 EditorSceneManager.SetActiveScene rejected the " + purpose +
+                    ": sceneValid='" + scene.IsValid() + "' loaded='" + scene.isLoaded +
+                    "' path='" + scene.path + "' activePath='" +
+                    EditorSceneManager.GetActiveScene().path + "'.");
+
+            if (EditorSceneManager.GetActiveScene() != scene)
+                throw new InvalidOperationException(
+                    "C4 did not make the " + purpose + " the active Editor scene.");
+        }
+
+        private static void ValidateSceneRootOwnership(
+            Scene scene,
+            int expectedRootCount,
+            string purpose)
+        {
+            if (scene.rootCount != expectedRootCount)
+                throw new InvalidOperationException(
+                    "C4 materialized " + scene.rootCount + " roots in " + purpose +
+                    "; expected " + expectedRootCount + ".");
+
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                if (root.scene != scene)
+                    throw new InvalidOperationException(
+                        "C4 materialized root '" + root.name + "' outside " + purpose + ".");
+            }
         }
 
         private sealed class SceneManagerSetupSnapshot
@@ -293,8 +336,7 @@ namespace Immersive.QaFramework.IfAdr014.Editor
                 NewSceneSetup.EmptyScene, NewSceneMode.Additive);
             try
             {
-                if (!SceneManager.SetActiveScene(authoringScene))
-                    throw new InvalidOperationException("Could not activate the isolated C4 prefab authoring scene.");
+                ActivateEditorScene(authoringScene, "isolated C4 prefab authoring scene");
 
                 for (int index = 0; index < PartPrefabIds.Length; index++)
                 {
@@ -302,10 +344,14 @@ namespace Immersive.QaFramework.IfAdr014.Editor
                         PartPrefabIds[index] + ".prefab";
                     EnsurePathAvailable(prefabPath);
                     GameObject root = new GameObject("QA_IF_ADR_014_C4_Part");
-                    QaIfAdr014C4PartWitness witness = root.AddComponent<QaIfAdr014C4PartWitness>();
-                    Set(witness, "prefabId", PartPrefabIds[index]);
                     try
                     {
+                        if (root.scene != authoringScene)
+                            throw new InvalidOperationException(
+                                "C4 prefab root was created outside its isolated authoring scene.");
+
+                        QaIfAdr014C4PartWitness witness = root.AddComponent<QaIfAdr014C4PartWitness>();
+                        Set(witness, "prefabId", PartPrefabIds[index]);
                         prefabs[index] = PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
                     }
                     finally
@@ -414,7 +460,7 @@ namespace Immersive.QaFramework.IfAdr014.Editor
             RouteAsset replacementRoute,
             GameObject[] partPrefabs)
         {
-            BuildScene(PersistentScenePath, () =>
+            BuildScene(PersistentScenePath, 1, () =>
             {
                 GameObject controller = new GameObject("IF-ADR-014 C4 Dynamic Composition Scenario");
                 ActivityRequestTrigger activityRequest = controller.AddComponent<ActivityRequestTrigger>();
@@ -444,7 +490,7 @@ namespace Immersive.QaFramework.IfAdr014.Editor
 
         private static void CreateRouteScene(ObjectEntryCompositionProfile profile)
         {
-            BuildScene(RouteScenePath, () =>
+            BuildScene(RouteScenePath, 5, () =>
             {
                 new GameObject("C4 Route Object Entry Query")
                     .AddComponent<ObjectEntryOccurrenceQueryBinding>();
@@ -457,7 +503,7 @@ namespace Immersive.QaFramework.IfAdr014.Editor
 
         private static void CreateActivityScene()
         {
-            BuildScene(ActivityScenePath, () =>
+            BuildScene(ActivityScenePath, 2, () =>
             {
                 new GameObject("C4 Activity Object Entry Query")
                     .AddComponent<ObjectEntryOccurrenceQueryBinding>();
@@ -467,7 +513,7 @@ namespace Immersive.QaFramework.IfAdr014.Editor
 
         private static void CreateReplacementRouteScene()
         {
-            BuildScene(ReplacementRouteScenePath, () =>
+            BuildScene(ReplacementRouteScenePath, 1, () =>
             {
                 new GameObject("C4 Replacement Route Content");
             });
@@ -520,16 +566,17 @@ namespace Immersive.QaFramework.IfAdr014.Editor
             AssetDatabase.SaveAssetIfDirty(application);
         }
 
-        private static void BuildScene(string path, Action author)
+        private static void BuildScene(string path, int expectedRootCount, Action author)
         {
             EnsurePathAvailable(path);
             Scene scene = EditorSceneManager.NewScene(
                 NewSceneSetup.EmptyScene, NewSceneMode.Additive);
             try
             {
-                if (!SceneManager.SetActiveScene(scene))
-                    throw new InvalidOperationException("Could not set the generated C4 scene active: " + path);
+                ActivateEditorScene(scene, "generated C4 scene '" + path + "'");
                 author();
+                ValidateSceneRootOwnership(
+                    scene, expectedRootCount, "generated C4 scene '" + path + "'");
                 if (!EditorSceneManager.SaveScene(scene, path))
                     throw new InvalidOperationException("Could not save generated C4 scene: " + path);
             }
@@ -560,20 +607,28 @@ namespace Immersive.QaFramework.IfAdr014.Editor
             else
             {
                 if (!route.HasValidRouteId || route.RouteId.StableText != "qa.if-adr-014.c4.route" ||
-                    route.PrimaryScenePath != RouteScenePath)
+                    route.RouteName != "IF-ADR-014 C4 Dynamic Composition" ||
+                    route.PrimaryScenePath != RouteScenePath ||
+                    route.PrimarySceneName != "QA_IF_ADR_014_C4_Route")
                     issues.Add("C4 Route identity or primary scene conflicts with the prepared fixture.");
                 if (!replacement.HasValidRouteId ||
                     replacement.RouteId.StableText != "qa.if-adr-014.c4.replacement-route" ||
-                    replacement.PrimaryScenePath != ReplacementRouteScenePath)
+                    replacement.RouteName != "IF-ADR-014 C4 Replacement Route" ||
+                    replacement.PrimaryScenePath != ReplacementRouteScenePath ||
+                    replacement.PrimarySceneName != "QA_IF_ADR_014_C4_ReplacementRoute")
                     issues.Add("C4 replacement Route identity or scene conflicts with the prepared fixture.");
-                if (application.StartupRoute != route)
+                if (application.ApplicationName != "IF-ADR-014 C4 Dynamic Composition Certification" ||
+                    application.StartupRoute != route)
                     issues.Add("C4 Game Application does not reference the generated C4 Route.");
-                if (application.PlayerSessionEnabled)
+                if (application.PlayerSessionEnabled || application.DefaultPlayerSessionProfile != null)
                     issues.Add("C4 Game Application must not enable a Player Session for this non-gameplay QA fixture.");
                 if (route.StartupActivity != null || replacement.StartupActivity != null)
                     issues.Add("C4 Routes must not start an Activity before the scenario controller requests it.");
                 if (!application.HasPersistentContentComposition ||
-                    application.PersistentContent.ContainerScenePath != PersistentScenePath)
+                    application.PersistentContent.ContainerScenePath != PersistentScenePath ||
+                    application.PersistentContent.ContainerSceneName != "QA_IF_ADR_014_C4_Persistent" ||
+                    application.PersistentContent.ContainerScene !=
+                    AssetDatabase.LoadAssetAtPath<SceneAsset>(PersistentScenePath))
                     issues.Add("C4 Game Application does not reference its generated Persistent scene.");
                 if (!profile.TryValidate(out string profileIssue))
                     issues.Add("C4 Base Profile is invalid: " + profileIssue);
@@ -588,6 +643,7 @@ namespace Immersive.QaFramework.IfAdr014.Editor
                     issues.Add("C4 Activity Content Profile does not reference its generated scene.");
                 if (!activity.HasValidActivityId ||
                     activity.ActivityId.StableText != "qa.if-adr-014.c4.activity" ||
+                    activity.ActivityName != "IF-ADR-014 C4 Dynamic Composition" ||
                     activity.ActivityContentProfile != activityProfile)
                     issues.Add("C4 Activity identity or content-profile reference conflicts with the prepared fixture.");
             }
