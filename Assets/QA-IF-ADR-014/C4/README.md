@@ -2,7 +2,7 @@
 
 This fixture is an isolated Play Mode consumer scenario for the public com.immersive.framework Object Entry composition API. It creates its own Game Application, Route, replacement Route, Activity, scenes, Base Profile and prefab assets below Assets/QA-IF-ADR-014/C4/Generated/. It does not alter the B2 demo or its assets.
 
-The C4 scenario is source-ready, not certified. The Project Owner must run it in Unity and retain the complete Console output. The prior B2 10/10 result is separate evidence and does not validate dynamic composition. The Project Owner's previously supplied 566/566 Edit Mode result supports the Framework C3 regression baseline (visual evidence, not SHA-fingerprinted); it is not a run of C4's new integrated Play Mode scenario.
+The C4 scenario has **Project Owner-executed Unity Play Mode evidence (2026-11-06): 21/21 cases PASS**. This certifies the C4 defined Route/Activity dynamic-composition scenario, not every platform, all possible concurrency schedules or production-release readiness. The full Console transcript is supplied in the project conversation; it is not a machine-readable NUnit XML or source-SHA-fingerprinted artifact. The prior B2 10/10 result is separate evidence and does not validate dynamic composition. The Project Owner's previously supplied 566/566 Edit Mode result supports the Framework C3 regression baseline (visual evidence, not SHA-fingerprinted); it is not a run of C4's new integrated Play Mode scenario.
 
 ## Prerequisites
 
@@ -84,13 +84,21 @@ The public IObjectEntryRecognitionQuery and IObjectEntryOccurrenceQuery remain r
 2. The generator reuses a complete valid Generated tree. If a generated tree is incomplete or conflicting, it stops without deleting files. After reviewing and backing up the generated data, remove only Assets/QA-IF-ADR-014/C4/Generated/ manually if a clean regeneration is required.
 3. To repeat QA, re-run setup validation, select the C4 application and scenes, then enter a fresh Play Mode session.
 
-## Evidence status
+## Evidence status — Project Owner Unity execution, 2026-11-06
 
-No Unity import, compile, Edit Mode or Play Mode run is claimed by this change. C4 Amendment 003 certification remains pending the Project Owner's C4 Play Mode transcript and the required C3 Unity validation. Do not use the C4 scenario result to promote the API to Stable or claim production readiness.
+**C4 Play Mode: PASS, 21/21 cases, executed=21, no Failed/Blocked case.** The provided Unity Console transcript has 21 distinct case IDs with `pass='True'` and exactly one terminal:
+
+`[IF-ADR-014-C4] status='Passed' cases='21/21' executed='21' diagnostic=''`
+
+The generated fixture reported `setup='Prepared' scenes='4'`; Framework boot succeeded in the C4 Game Application and Route. Direct cases show add/replace/remove, Base override/restoration, independent contributions, priority winner, equal/hidden conflict rejection without effects, cross-contribution dependency, read-only queries, Activity mutation, restart/readmission and stale handle. The Activity Restart returned `CompletedWithWarnings` because reset had no subjects, with `clearStatus='Succeeded'`, `reentryStatus='Succeeded'` and `blockingIssues='0'`; the corresponding physical-lifecycle case passed. The Route replacement completed `Succeeded`, and the final case recorded physical destruction of **8 Route parts and 1 current Activity part** while each original owner scene was still loaded and the exact root/declaration/ID remained intact. After release, retained roots were destroyed with `remaining='0'`.
+
+The Project Owner's earlier **566/566 Unity Edit Mode PASS** screenshot supports C3 regression coverage (including the C3 additions); the B2 **10/10** Play Mode transcript is separate. These are composed owner-provided evidences, not a single commit-fingerprinted CI run. The C4 log explicitly does **not** certify abrupt Host teardown cleanup. Controlled Stop retains the awaited drain guarantee tested in Framework C3; abrupt `OnDestroy`/`OnApplicationQuit` remain limited to synchronous invalidation/cancellation, cleanup unconfirmed, per the accepted decision.
+
+**Certification scope:** IF-ADR-014 Amendment 003's specified C4 Route/Activity Play Mode scenario passed with C1–C3 Edit Mode regression evidence. The public API remains Experimental. No API Stable promotion, release, Player-build/platform validation, Session/dynamic-spawn lifecycle, or production-readiness claim is made.
 
 ### Tracker evidence summary
 
 - QAFramework baseline: `180f30895f66e194000112911fe9459d14b21d67`; Unity Editor: `6000.5.0f1`.
 - Framework source baseline: `2bf0560b88e35168c159e52240e498e3cb363fcc`.
 - Resolved Composition package: `0.1.0-preview.3`, package-lock hash `ef577765d0b565a020f3e98f6e5eaae681333c29`.
-- C4 source defines 21 Play Mode cases; C4 Play Mode execution remains pending Project Owner logs. The separate 566/566 C3 Edit Mode screenshot has already been supplied, without an NUnit XML report or execution SHA. Preserve the Unity version, QA/Framework commits, resolved package hash, full case output and Edit Mode counts with the eventual certification record.
+- C4: Project Owner reports a complete 21/21 Play Mode transcript on 2026-11-06, with physical destruction evidence (8 Route + 1 Activity part) before owner-scene unload and retained-root cleanup remaining=0. C3: separate 566/566 Edit Mode screenshot. No NUnit XML or immutable runtime SHA fingerprint was provided. Preserve the declared Unity 6000.5.0f1 setup, QA/Framework commits, resolved package fingerprint, full console evidence and counts as independent provenance; the exact executed checkout SHA is not independently established.
